@@ -1,0 +1,10 @@
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+Thumbs.db
+Desktop.ini
+subsets/
+annotation/
+*.tmp
+*.log

@@ -1,0 +1,24 @@
+Package: protivity
+Title: Context-Matched Protein Activity Scoring
+Version: 0.0.0.9000
+Authors@R:
+    c(
+        person("Antonia", "Landgrebe", email = "antonia.landgrebe@stud.uni-due.de", role = c("aut", "cre")),
+        person("Igor", "Cima", role = "aut")
+    )
+Description: Tools for context-matched protein activity scoring from transcriptomic
+    data using reference perturbation-derived signatures and structured downstream
+    interpretation utilities.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    methods,
+    stats,
+    utils
+Suggests:
+    cmapR,
+    fgsea,
+    GSVA,
+    testthat
