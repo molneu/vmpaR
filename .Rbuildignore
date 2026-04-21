@@ -1,0 +1,5 @@
+^data-raw$
+^subsets$
+^annotation$
+^\.Rproj\.user$
+^.*\.Rproj$

@@ -1,16 +1,16 @@
-# Internal analysis-mode utilities for protivity
+# Internal analysis-algorithm utilities for protivity
 # These functions are not user-facing and should not be exported.
 
 .compass_run_gsva <- function(expr_mat,
                               gene_set_list,
                               scale = FALSE) {
   if (!requireNamespace("GSVA", quietly = TRUE)) {
-    stop("Package `GSVA` must be installed for `mode = \"gsva\"`.", call. = FALSE)
+    stop("Package `GSVA` must be installed for `algorithm = \"gsva\"`.", call. = FALSE)
   }
   
   if (!(is.matrix(expr_mat) || is.data.frame(expr_mat))) {
     stop(
-      "`mode = \"gsva\"` requires `input` to be a matrix or data.frame ",
+      "`algorithm = \"gsva\"` requires `input` to be a matrix or data.frame ",
       "with genes in rows and samples in columns.",
       call. = FALSE
     )
@@ -78,19 +78,19 @@
                                max_size = 500L,
                                n_perm_simple = 5000L) {
   if (!requireNamespace("fgsea", quietly = TRUE)) {
-    stop("Package `fgsea` must be installed for `mode = \"fgsea\"`.", call. = FALSE)
+    stop("Package `fgsea` must be installed for `algorithm = \"fgsea\"`.", call. = FALSE)
   }
   
   if (!is.numeric(stats_vec)) {
     stop(
-      "`mode = \"fgsea\"` requires `input` to be a named numeric vector.",
+      "`algorithm = \"fgsea\"` requires `input` to be a named numeric vector.",
       call. = FALSE
     )
   }
   
   if (is.null(names(stats_vec))) {
     stop(
-      "`mode = \"fgsea\"` requires a named numeric vector ",
+      "`algorithm = \"fgsea\"` requires a named numeric vector ",
       "(gene names as names).",
       call. = FALSE
     )

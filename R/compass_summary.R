@@ -4,8 +4,8 @@
 #' prints a readable summary to the console.
 #'
 #' Supported result types:
-#' - fgsea-style data.frame returned by `compass(..., mode = "fgsea")`
-#' - score matrix returned by `compass(..., mode = "gsva")`
+#' - fgsea-style data.frame returned by `compass(..., algorithm = "fgsea")`
+#' - score matrix returned by `compass(..., algorithm = "gsva")`
 #' - future AUCell score matrices should also work if they follow the same
 #'   basic matrix structure (gene sets x samples/cells)
 #'

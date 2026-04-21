@@ -75,8 +75,8 @@ prints a readable summary to the console.
 \details{
 Supported result types:
 \itemize{
-\item fgsea-style data.frame returned by \code{compass(..., mode = "fgsea")}
-\item score matrix returned by \code{compass(..., mode = "gsva")}
+\item fgsea-style data.frame returned by \code{compass(..., algorithm = "fgsea")}
+\item score matrix returned by \code{compass(..., algorithm = "gsva")}
 \item future AUCell score matrices should also work if they follow the same
 basic matrix structure (gene sets x samples/cells)
 }

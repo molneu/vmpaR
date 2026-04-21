@@ -15,8 +15,8 @@
 #   - a mini internal guide for what each function expects
 #
 # IMPORTANT:
-#   - GSVA mode works directly with an expression matrix
-#   - FGSEA mode requires a named numeric ranking vector
+#   - GSVA algorithm works directly with an expression matrix
+#   - FGSEA algorithm requires a named numeric ranking vector
 #   - AUCell is not implemented yet
 # ============================================================================
 
@@ -136,7 +136,7 @@ load_expr_matrix_from_xlsx <- function(xlsx_path) {
 # ============================================================================
 # 4) Load example expression input
 # ----------------------------------------------------------------------------
-# INPUT TYPE for GSVA mode:
+# INPUT TYPE for GSVA algorithm:
 #   numeric matrix
 #   rows = genes
 #   columns = samples
@@ -156,7 +156,7 @@ print(utils::head(colnames(expr_mat), 10))
 # 5) Optional: define sample groups for demo comparisons
 # ----------------------------------------------------------------------------
 # This section is ONLY needed if you want to create a demo ranking vector
-# for FGSEA mode.
+# for FGSEA algorithm.
 #
 # You should adapt the grep patterns to your own sample naming scheme.
 # ============================================================================
@@ -255,22 +255,22 @@ print(gsc_gsc_example)
 
 
 # ============================================================================
-# 7) compass() in GSVA mode
+# 7) compass() with GSVA algorithm
 # ----------------------------------------------------------------------------
 # INPUT TYPE:
 #   numeric expression matrix
 #   rows = genes
 #   columns = samples
 #
-# This is the most user-friendly current mode.
+# This is the most user-friendly current algorithm.
 # ============================================================================
 
-cat("\n=== compass(): GSVA mode, basic run ===\n")
+cat("\n=== compass(): GSVA algorithm, basic run ===\n")
 
 compass_res_gsva <- compass(
   input = expr_mat,
   context = "glioma",
-  mode = "gsva",
+  algorithm = "gsva",
   conf = 1,
   gs.size = 250
 )
@@ -279,12 +279,12 @@ cat("GSVA result dimensions:", dim(compass_res_gsva)[1], "x", dim(compass_res_gs
 print(compass_res_gsva[1:5, 1:min(5, ncol(compass_res_gsva)), drop = FALSE])
 
 
-cat("\n=== compass(): GSVA mode, higher-confidence only ===\n")
+cat("\n=== compass(): GSVA algorithm, higher-confidence only ===\n")
 
 compass_res_gsva_c23 <- compass(
   input = expr_mat,
   context = "glioma",
-  mode = "gsva",
+  algorithm = "gsva",
   conf = 2,
   gs.size = 250
 )
@@ -292,12 +292,12 @@ compass_res_gsva_c23 <- compass(
 cat("GSVA c2/c3 result dimensions:", dim(compass_res_gsva_c23)[1], "x", dim(compass_res_gsva_c23)[2], "\n")
 
 
-cat("\n=== compass(): GSVA mode, scaled scores ===\n")
+cat("\n=== compass(): GSVA algorithm, scaled scores ===\n")
 
 compass_res_gsva_scaled <- compass(
   input = expr_mat,
   context = "glioma",
-  mode = "gsva",
+  algorithm = "gsva",
   conf = 1,
   gs.size = 250,
   scale = TRUE
@@ -306,12 +306,12 @@ compass_res_gsva_scaled <- compass(
 cat("Scaled GSVA result dimensions:", dim(compass_res_gsva_scaled)[1], "x", dim(compass_res_gsva_scaled)[2], "\n")
 
 
-cat("\n=== compass(): GSVA mode, return gene sets used ===\n")
+cat("\n=== compass(): GSVA algorithm, return gene sets used ===\n")
 
 compass_res_gsva_with_sets <- compass(
   input = expr_mat,
   context = "glioma",
-  mode = "gsva",
+  algorithm = "gsva",
   conf = 1,
   gs.size = 250,
   return_gene_sets = TRUE
@@ -323,7 +323,7 @@ cat("Gene sets used:", length(compass_res_gsva_with_sets$gene_sets), "\n")
 
 
 # ============================================================================
-# 8) compass() in FGSEA mode
+# 8) compass() with FGSEA algorithm
 # ----------------------------------------------------------------------------
 # INPUT TYPE:
 #   named numeric vector
@@ -339,7 +339,7 @@ cat("Gene sets used:", length(compass_res_gsva_with_sets$gene_sets), "\n")
 # ============================================================================
 
 if (length(dmso_samples) > 0L && length(temsi_500_samples) > 0L) {
-  cat("\n=== compass(): FGSEA mode, demo ranking vector ===\n")
+  cat("\n=== compass(): FGSEA algorithm, demo ranking vector ===\n")
   
   stats_vec_demo <- rowMeans(expr_mat[, temsi_500_samples, drop = FALSE]) -
     rowMeans(expr_mat[, dmso_samples, drop = FALSE])
@@ -353,7 +353,7 @@ if (length(dmso_samples) > 0L && length(temsi_500_samples) > 0L) {
   compass_res_fgsea <- compass(
     input = stats_vec_demo,
     context = "glioma",
-    mode = "fgsea",
+    algorithm = "fgsea",
     conf = 1,
     gs.size = 250,
     min_size = 10,
@@ -621,15 +621,15 @@ cat(results_dir, "\n")
 # ============================================================================
 # 17) Notes / caveats
 # ----------------------------------------------------------------------------
-# - GSVA mode:
+# - GSVA algorithm:
 #     input = expression matrix
 #     output = signature x sample score matrix
 #
-# - FGSEA mode:
+# - FGSEA algorithm:
 #     input = named numeric ranking vector
 #     output = NES-style data.frame
 #
-# - AUCell mode:
+# - AUCell algorithm:
 #     not implemented yet
 #
 # - RNA–activity discordance:

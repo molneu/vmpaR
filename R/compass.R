@@ -1,4 +1,4 @@
-#' Run COMPASS for one context and one analysis mode
+#' Run COMPASS for one context and one analysis algorithm
 #'
 #' Main user-facing function of the protivity package.
 #'
@@ -7,13 +7,13 @@
 #' to the user-provided query input.
 #'
 #' @param input Main query input.
-#'   - For `mode = "gsva"`: numeric matrix or data.frame with genes in rows
+#'   - For `algorithm = "gsva"`: numeric matrix or data.frame with genes in rows
 #'     and samples in columns.
-#'   - For `mode = "fgsea"`: named numeric vector of gene-level statistics
+#'   - For `algorithm = "fgsea"`: named numeric vector of gene-level statistics
 #'     or rankings.
 #' @param context Character scalar. Cancer context used to resolve the
 #'   corresponding subset database.
-#' @param mode Character scalar. Either `"gsva"` or `"fgsea"`.
+#' @param algorithm Character scalar. Either `"gsva"` or `"fgsea"`.
 #'   Default: `"gsva"`.
 #' @param subset_dir Optional character scalar. Local directory containing
 #'   subset files such as `glioma_subset.rds`. Checked before cache/download.
@@ -39,19 +39,19 @@
 #'
 #' @return
 #' If `return_gene_sets = FALSE`:
-#' - for `mode = "gsva"`: a numeric matrix of COMPASS scores
-#' - for `mode = "fgsea"`: a data.frame of FGSEA results
+#' - for `algorithm = "gsva"`: a numeric matrix of COMPASS scores
+#' - for `algorithm = "fgsea"`: a data.frame of FGSEA results
 #'
 #' If `return_gene_sets = TRUE`, a list with:
 #' - `compass_result`
 #' - `gene_sets`
 #' - `context`
-#' - `mode`
+#' - `algorithm`
 #'
 #' @export
 compass <- function(input,
                     context,
-                    mode = c("gsva", "fgsea"),
+                    algorithm = c("gsva", "fgsea"),
                     subset_dir = NULL,
                     cache_dir = NULL,
                     download_if_missing = TRUE,
@@ -61,7 +61,7 @@ compass <- function(input,
                     driver_filter = FALSE,
                     return_gene_sets = FALSE,
                     verbose = TRUE) {
-  mode <- match.arg(mode)
+  algorithm <- match.arg(algorithm)
   context <- .compass_validate_context(context)
   
   if (!is.logical(download_if_missing) || length(download_if_missing) != 1L || is.na(download_if_missing)) {
@@ -119,14 +119,14 @@ compass <- function(input,
     stop("No COMPASS gene sets available after filtering.", call. = FALSE)
   }
   
-  # 3) Run analysis in the selected mode
-  if (mode == "gsva") {
+  # 3) Run analysis with the selected algorithm
+  if (algorithm == "gsva") {
     compass_result <- .compass_run_gsva(
       expr_mat = input,
       gene_set_list = gene_set_list,
       scale = FALSE
     )
-  } else if (mode == "fgsea") {
+  } else if (algorithm == "fgsea") {
     compass_result <- .compass_run_fgsea(
       stats_vec = input,
       gene_set_list = gene_set_list,
@@ -145,7 +145,7 @@ compass <- function(input,
       compass_result = compass_result,
       gene_sets = gene_set_list,
       context = context,
-      mode = mode
+      algorithm = algorithm
     ))
   }
   

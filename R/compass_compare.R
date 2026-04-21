@@ -1,7 +1,7 @@
 #' Compare COMPASS score patterns across experimental groups
 #'
 #' `compass_compare()` performs explicit group-wise comparisons on COMPASS score
-#' matrices, typically produced by `compass(..., mode = "gsva")`.
+#' matrices, typically produced by `compass(..., algorithm = "gsva")`.
 #'
 #' The main output is a transparent signature-level result table. Optional
 #' protein-level aggregation can be added explicitly, but is never silently used

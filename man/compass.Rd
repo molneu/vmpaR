@@ -2,12 +2,12 @@
 % Please edit documentation in R/compass.R
 \name{compass}
 \alias{compass}
-\title{Run COMPASS for one context and one analysis mode}
+\title{Run COMPASS for one context and one analysis algorithm}
 \usage{
 compass(
   input,
   context,
-  mode = c("gsva", "fgsea"),
+  algorithm = c("gsva", "fgsea"),
   subset_dir = NULL,
   cache_dir = NULL,
   download_if_missing = TRUE,
@@ -22,16 +22,16 @@ compass(
 \arguments{
 \item{input}{Main query input.
 \itemize{
-\item For \code{mode = "gsva"}: numeric matrix or data.frame with genes in rows
+\item For \code{algorithm = "gsva"}: numeric matrix or data.frame with genes in rows
 and samples in columns.
-\item For \code{mode = "fgsea"}: named numeric vector of gene-level statistics
+\item For \code{algorithm = "fgsea"}: named numeric vector of gene-level statistics
 or rankings.
 }}
 
 \item{context}{Character scalar. Cancer context used to resolve the
 corresponding subset database.}
 
-\item{mode}{Character scalar. Either \code{"gsva"} or \code{"fgsea"}.
+\item{algorithm}{Character scalar. Either \code{"gsva"} or \code{"fgsea"}.
 Default: \code{"gsva"}.}
 
 \item{subset_dir}{Optional character scalar. Local directory containing
@@ -67,8 +67,8 @@ resolution and download steps. Default: \code{TRUE}.}
 \value{
 If \code{return_gene_sets = FALSE}:
 \itemize{
-\item for \code{mode = "gsva"}: a numeric matrix of COMPASS scores
-\item for \code{mode = "fgsea"}: a data.frame of FGSEA results
+\item for \code{algorithm = "gsva"}: a numeric matrix of COMPASS scores
+\item for \code{algorithm = "fgsea"}: a data.frame of FGSEA results
 }
 
 If \code{return_gene_sets = TRUE}, a list with:
@@ -76,7 +76,7 @@ If \code{return_gene_sets = TRUE}, a list with:
 \item \code{compass_result}
 \item \code{gene_sets}
 \item \code{context}
-\item \code{mode}
+\item \code{algorithm}
 }
 }
 \description{
