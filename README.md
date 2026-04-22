@@ -10,6 +10,20 @@ remotes::install_github("landgrebe-a/protivity")
 library(protivity)
 ```
 
+## Quick start
+
+```r
+data(example_gbm_expr, package = "protivity")
+
+compass_result_example <- compass(
+  input = example_gbm_expr,
+  context = "glioma",
+  algorithm = "gsva"
+)
+```
+
+Reference subsets are downloaded automatically on first use and cached locally for reuse.
+
 ## Main functions
 
 - `compass()` runs COMPASS scoring on a user-provided expression matrix or ranked gene-level vector.

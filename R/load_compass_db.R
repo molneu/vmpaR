@@ -81,6 +81,7 @@
       url = subset_url,
       destfile = tmp,
       mode = "wb",
+      method = "libcurl",
       quiet = !isTRUE(verbose)
     ),
     error = function(e) e
@@ -135,15 +136,43 @@
 }
 
 .compass_context_registry <- function() {
-  contexts <- c(
-    "breast", "crc", "gastric", "glioma", "headneck",
-    "melanoma", "nsclc", "ovarian", "pdac", "prostate"
-  )
-  
   data.frame(
-    context = contexts,
-    subset_file = paste0(contexts, "_subset.rds"),
-    subset_url = NA_character_,
+    context = c(
+      "breast",
+      "crc",
+      "gastric",
+      "glioma",
+      "headneck",
+      "melanoma",
+      "nsclc",
+      "ovarian",
+      "pdac",
+      "prostate"
+    ),
+    subset_file = c(
+      "breast_subset.rds",
+      "crc_subset.rds",
+      "gastric_subset.rds",
+      "glioma_subset.rds",
+      "headneck_subset.rds",
+      "melanoma_subset.rds",
+      "nsclc_subset.rds",
+      "ovarian_subset.rds",
+      "pdac_subset.rds",
+      "prostate_subset.rds"
+    ),
+    subset_url = c(
+      "https://ndownloader.figshare.com/files/63887454",
+      "https://ndownloader.figshare.com/files/63887457",
+      "https://ndownloader.figshare.com/files/63887466",
+      "https://ndownloader.figshare.com/files/63887475",
+      "https://ndownloader.figshare.com/files/63887463",
+      "https://ndownloader.figshare.com/files/63887472",
+      "https://ndownloader.figshare.com/files/63887481",
+      "https://ndownloader.figshare.com/files/63887478",
+      "https://ndownloader.figshare.com/files/63887469",
+      "https://ndownloader.figshare.com/files/63887460"
+    ),
     stringsAsFactors = FALSE
   )
 }

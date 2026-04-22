@@ -2,7 +2,5 @@
 
 export(compass)
 export(compass_annotate)
-export(compass_compare)
-export(compass_compare_wide)
 export(compass_gsc)
 export(compass_summary)
