@@ -15,10 +15,21 @@ library(protivity)
 ```r
 data(example_gbm_expr, package = "protivity")
 
-compass_result_example <- compass(
+gsva_result_example <- compass(
   input = example_gbm_expr,
   context = "glioma",
   algorithm = "gsva"
+)
+```
+
+```r
+data(example_u251_azd8055_rank, package = "protivity")
+
+fgsea_result_example <- compass(
+  input = example_u251_azd8055_rank,
+  context = "glioma",
+  algorithm = "fgsea",
+  targets = "MTOR"
 )
 ```
 
