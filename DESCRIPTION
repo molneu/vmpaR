@@ -7,8 +7,7 @@ Authors@R:
         person("Igor", "Cima", role = "aut")
     )
 Description: Tools for context-matched protein activity scoring from transcriptomic
-    data using reference perturbation-derived signatures and structured downstream
-    interpretation utilities.
+    data using reference perturbation-derived signatures.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -17,6 +16,7 @@ Imports:
     cmapR,
     methods,
     stats,
+    tools,
     utils
 Suggests:
     fgsea,

@@ -39,8 +39,6 @@ Reference subsets are downloaded automatically on first use and cached locally f
 
 - `compass()` runs COMPASS scoring on a user-provided expression matrix or ranked gene-level vector.
 - `compass_gsc()` extracts COMPASS reference gene sets for a selected cancer context.
-- `compass_summary()` summarizes COMPASS results for downstream interpretation.
-- `compass_annotate()` adds optional annotation layers to COMPASS outputs.
 
 ## Reference
 
