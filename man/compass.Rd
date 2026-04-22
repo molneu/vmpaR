@@ -8,6 +8,8 @@ compass(
   input,
   context,
   algorithm = c("gsva", "fgsea"),
+  gsva_score_scaling = c("none", "sample_wise_zscore", "sample_wise_population_sd",
+    "signature_wise_zscore"),
   subset_dir = NULL,
   cache_dir = NULL,
   download_if_missing = TRUE,
@@ -33,6 +35,11 @@ corresponding subset database.}
 
 \item{algorithm}{Character scalar. Either \code{"gsva"} or \code{"fgsea"}.
 Default: \code{"gsva"}.}
+
+\item{gsva_score_scaling}{Character scalar. Post-processing applied to GSVA
+score matrices. One of \code{"none"}, \code{"sample_wise_zscore"},
+\code{"sample_wise_population_sd"}, or \code{"signature_wise_zscore"}.
+Default: \code{"none"}. Only used when \code{algorithm = "gsva"}.}
 
 \item{subset_dir}{Optional character scalar. Local directory containing
 subset files such as \code{glioma_subset.rds}. Checked before cache/download.}
@@ -62,7 +69,7 @@ drivers. Default: \code{FALSE}.}
 gene sets together with the COMPASS result. Default: \code{FALSE}.}
 
 \item{verbose}{Logical. If \code{TRUE}, print progress messages for subset
-resolution and download steps. Default: \code{TRUE}.}
+resolution, download steps, and optional GSVA score scaling. Default: \code{TRUE}.}
 }
 \value{
 If \code{return_gene_sets = FALSE}:
