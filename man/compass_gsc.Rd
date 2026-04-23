@@ -58,9 +58,21 @@ Depending on \code{output}:
 \item \code{"df"}: data frame with one column per gene set
 \item \code{"gsc"}: \code{GSEABase::GeneSetCollection}
 }
+
+For all outputs, signature-level metadata are attached as
+\code{attr(x, "signature_metadata")}. These metadata describe the reference
+signatures underlying the returned gene sets and may include fields such as
+\code{gene_set_name}, \code{id}, \code{cmap_name}, \code{cps_conf_total}, and
+\code{cancer_driver_summary}. Row names correspond to gene-set names.
 }
 \description{
 Public helper to extract COMPASS reference gene sets without running
 downstream scoring. This function reuses the same internal subset-resolution
 and gene-set-building logic as \code{compass()}.
+}
+\examples{
+gsc <- compass_gsc("glioma", output = "gsc")
+sig_meta <- attr(gsc, "signature_metadata")
+head(sig_meta)
+
 }
