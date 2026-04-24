@@ -4,8 +4,9 @@
 #' downstream scoring. This function reuses the same internal subset-resolution
 #' and gene-set-building logic as `compass()`.
 #'
-#' @param context Character scalar. Cancer context used to resolve the
-#'   corresponding subset database.
+#' @param context Character; preferred context, one of:
+#'   `"glioma"`, `"melanoma"`, `"nsclc"`, `"gastric"`, `"ovarian"`,
+#'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, `"headneck"`.
 #' @param subset_dir Optional character scalar. Local directory containing
 #'   subset files such as `glioma_subset.rds`. Checked before cache/download.
 #' @param cache_dir Optional character scalar. Override for the package cache

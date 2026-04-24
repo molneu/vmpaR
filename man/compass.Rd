@@ -30,8 +30,9 @@ and samples in columns.
 or rankings.
 }}
 
-\item{context}{Character scalar. Cancer context used to resolve the
-corresponding subset database.}
+\item{context}{Character; preferred context, one of:
+\code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
+\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, \code{"headneck"}.}
 
 \item{algorithm}{Character scalar. Either \code{"gsva"} or \code{"fgsea"}.
 Default: \code{"gsva"}.}
