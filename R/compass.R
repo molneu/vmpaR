@@ -11,8 +11,9 @@
 #'     and samples in columns.
 #'   - For `algorithm = "fgsea"`: named numeric vector of gene-level statistics
 #'     or rankings.
-#' @param context Character scalar. Cancer context used to resolve the
-#'   corresponding subset database.
+#' @param context Character; preferred context, one of:
+#'   `"glioma"`, `"melanoma"`, `"nsclc"`, `"gastric"`, `"ovarian"`,
+#'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, `"headneck"`.
 #' @param algorithm Character scalar. Either `"gsva"` or `"fgsea"`.
 #'   Default: `"gsva"`.
 #' @param gsva_score_scaling Character scalar. Post-processing applied to GSVA

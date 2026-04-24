@@ -18,8 +18,9 @@ compass_gsc(
 )
 }
 \arguments{
-\item{context}{Character scalar. Cancer context used to resolve the
-corresponding subset database.}
+\item{context}{Character; preferred context, one of:
+\code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
+\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, \code{"headneck"}.}
 
 \item{subset_dir}{Optional character scalar. Local directory containing
 subset files such as \code{glioma_subset.rds}. Checked before cache/download.}
