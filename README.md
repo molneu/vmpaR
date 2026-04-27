@@ -16,15 +16,23 @@ library(protivity)
 data(kebir_gb, package = "protivity")
 
 df <- Biobase::exprs(kebir_gb)
+sample_metadata <- Biobase::pData(kebir_gb)
 
 gsva_result_example <- compass(
   input = df,
   context = "glioma",
-  algorithm = "gsva"
+  algorithm = "gsva",
+  unique = TRUE
 )
 ```
 
 Reference subsets are downloaded automatically on first use and cached locally for reuse.
+
+`kebir_gb` is provided as a Biobase `ExpressionSet`. Use `Biobase::exprs(kebir_gb)` for the expression matrix and `Biobase::pData(kebir_gb)` for sample metadata.
+
+Optional GSVA score scaling modes include `sample_z`, `sample_pop_sd`, and `signature_z`.
+
+See `?compass` for an additional FGSEA example using a ranked gene-level vector.
 
 ## Main functions
 

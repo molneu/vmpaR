@@ -5,18 +5,23 @@
 \alias{kebir_gb}
 \title{Kebir glioblastoma example dataset}
 \format{
-A Biobase ExpressionSet with gene-level expression values in
+A \code{Biobase::ExpressionSet} with gene-level expression values in
 \code{Biobase::exprs(kebir_gb)} and sample annotations in
 \code{Biobase::pData(kebir_gb)}.
 }
 \source{
-Kebir et al.; GSE145128.
+Kebir S, Ullrich V, Berger P, Dobersalske C, Langer S,
+Rauschenbach L, et al. A Sequential Targeting Strategy Interrupts
+AKT-Driven Subclone-Mediated Progression in Glioblastoma.
+Clinical Cancer Research. 2023;29(2):488-500.
+doi:10.1158/1078-0432.CCR-22-0611. PMID:36239995.
+GEO accession: GSE145128.
 }
 \usage{
 kebir_gb
 }
 \description{
-A small glioblastoma example dataset stored as a Biobase ExpressionSet.
+A small glioblastoma example dataset stored as a \code{Biobase::ExpressionSet}.
 It contains gene-level expression values and sample-level metadata from
 Kebir et al. and can be used for package examples and tutorials.
 }
@@ -26,7 +31,7 @@ Sample metadata can be accessed with \code{Biobase::pData(kebir_gb)}.
 }
 \examples{
 if (requireNamespace("Biobase", quietly = TRUE)) {
-  data(kebir_gb)
+  data(kebir_gb, package = "protivity")
 
   expr_mat <- Biobase::exprs(kebir_gb)
   sample_info <- Biobase::pData(kebir_gb)

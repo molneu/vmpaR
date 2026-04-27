@@ -84,7 +84,8 @@ If \code{return_gene_sets = FALSE}:
 \item for \code{algorithm = "gsva"}: a numeric matrix of COMPASS scores. With
 \code{unique = TRUE}, rows correspond to target/protein names. With
 \code{unique = FALSE}, rows correspond to individual COMPASS signature names.
-\item for \code{algorithm = "fgsea"}: a data.frame of FGSEA results.
+\item for \code{algorithm = "fgsea"}: a data.frame of FGSEA results, annotated with
+target and signature metadata when available.
 }
 
 If \code{return_gene_sets = TRUE}, a list with:
@@ -95,7 +96,7 @@ If \code{return_gene_sets = TRUE}, a list with:
 \item \code{algorithm}: selected analysis algorithm
 \item \code{unique}: whether target-level reduction was used
 \item \code{unique_selection}: metadata describing the selected signatures when
-\code{unique = TRUE}
+\code{unique = TRUE}; otherwise \code{NULL}
 }
 }
 \description{
@@ -134,20 +135,43 @@ p-values, and leading-edge genes are signature-level results and are not
 averaged.
 
 If \code{return_gene_sets = TRUE}, the returned list contains the gene sets used
-for the analysis and \code{unique_selection}, a metadata table describing which
-signatures were selected for target-level output.
+for the analysis and, when \code{unique = TRUE}, \code{unique_selection}, a metadata
+table describing which signatures were selected for target-level output.
 }
 \examples{
 \dontrun{
 if (requireNamespace("Biobase", quietly = TRUE)) {
   data(kebir_gb, package = "protivity")
 
+  # Example 1: GSVA workflow
   df <- Biobase::exprs(kebir_gb)
 
-  gsva_result_example <- compass(
+  gsva_result <- compass(
     input = df,
     context = "glioma",
     algorithm = "gsva"
+  )
+
+  # Sample metadata are available via pData()
+  sample_metadata <- Biobase::pData(kebir_gb)
+
+  # Example 2: FGSEA workflow
+  # Build a simple ranked vector contrasting relapse vs treatment-naive
+  # samples. This is a minimal example for demonstrating the required
+  # input format for algorithm = "fgsea".
+  relapsed <- sample_metadata$relapse_TYPE != "n"
+  naive <- sample_metadata$relapse_TYPE == "n"
+
+  stats_vec <- rowMeans(df[, relapsed, drop = FALSE]) -
+    rowMeans(df[, naive, drop = FALSE])
+
+  stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
+  stats_vec <- sort(stats_vec, decreasing = TRUE)
+
+  fgsea_result <- compass(
+    input = stats_vec,
+    context = "glioma",
+    algorithm = "fgsea"
   )
 }
 }
