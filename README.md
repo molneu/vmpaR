@@ -30,7 +30,7 @@ Reference subsets are downloaded automatically on first use and cached locally f
 
 `kebir_gb` is provided as a Biobase `ExpressionSet`. Use `Biobase::exprs(kebir_gb)` for the expression matrix and `Biobase::pData(kebir_gb)` for sample metadata.
 
-Optional GSVA score scaling modes include `sample_z`, `sample_pop_sd`, and `signature_z`.
+Optional GSVA score normalization modes include `sample_z`, `sample_pop_sd`, and `signature_z`.
 
 See `?compass` for an additional FGSEA example using a ranked gene-level vector.
 
