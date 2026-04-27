@@ -2,24 +2,13 @@
 # These functions are not user-facing and should not be exported.
 
 .compass_resolve_subset_file <- function(context,
-                                         subset_dir = NULL,
                                          cache_dir = NULL,
-                                         download_if_missing = TRUE,
                                          verbose = TRUE) {
   context <- .compass_validate_context(context)
-  
-  if (!is.null(subset_dir) &&
-      (!is.character(subset_dir) || length(subset_dir) != 1L || is.na(subset_dir) || subset_dir == "")) {
-    stop("`subset_dir` must be NULL or a single non-empty character string.", call. = FALSE)
-  }
   
   if (!is.null(cache_dir) &&
       (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir) || cache_dir == "")) {
     stop("`cache_dir` must be NULL or a single non-empty character string.", call. = FALSE)
-  }
-  
-  if (!is.logical(download_if_missing) || length(download_if_missing) != 1L || is.na(download_if_missing)) {
-    stop("`download_if_missing` must be TRUE or FALSE.", call. = FALSE)
   }
   
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
@@ -28,18 +17,7 @@
   
   subset_file <- .compass_subset_filename(context)
   
-  # 1) explicit local directory ----------------------------------------------
-  if (!is.null(subset_dir)) {
-    candidate <- file.path(subset_dir, subset_file)
-    .compass_msg(verbose, "Checking subset_dir: ", candidate)
-    
-    if (file.exists(candidate)) {
-      .compass_msg(verbose, "Found local subset file.")
-      return(normalizePath(candidate, winslash = "/", mustWork = TRUE))
-    }
-  }
-  
-  # 2) package cache ----------------------------------------------------------
+  # 1) package cache ----------------------------------------------------------
   cache_dir <- .compass_cache_dir(cache_dir = cache_dir)
   cache_path <- file.path(cache_dir, subset_file)
   
@@ -50,18 +28,7 @@
     return(normalizePath(cache_path, winslash = "/", mustWork = TRUE))
   }
   
-  # 3) optional download ------------------------------------------------------
-  if (!isTRUE(download_if_missing)) {
-    stop(
-      "Subset file for context `", context, "` was not found.\n",
-      "Checked:\n",
-      if (!is.null(subset_dir)) paste0("- subset_dir: ", file.path(subset_dir, subset_file), "\n") else "",
-      "- cache: ", cache_path, "\n",
-      "Set `download_if_missing = TRUE` or provide a valid `subset_dir`.",
-      call. = FALSE
-    )
-  }
-  
+  # 2) download if not cached -------------------------------------------------
   subset_url <- .compass_subset_url(context)
   
   if (is.na(subset_url) || subset_url == "") {
@@ -71,17 +38,24 @@
     )
   }
   
+  .compass_msg(verbose, "Subset not found in cache.")
   .compass_msg(verbose, "Downloading subset for context `", context, "` ...")
   
   tmp <- tempfile(pattern = paste0(context, "_subset_"), fileext = ".rds")
   on.exit(unlink(tmp), add = TRUE)
+  
+  download_method <- if (isTRUE(capabilities("libcurl"))) {
+    "libcurl"
+  } else {
+    "auto"
+  }
   
   download_status <- tryCatch(
     utils::download.file(
       url = subset_url,
       destfile = tmp,
       mode = "wb",
-      method = "libcurl",
+      method = download_method,
       quiet = !isTRUE(verbose)
     ),
     error = function(e) e
@@ -99,6 +73,13 @@
       is.na(download_status) || download_status != 0 || !file.exists(tmp)) {
     stop(
       "Failed to download subset for context `", context, "`.",
+      call. = FALSE
+    )
+  }
+  
+  if (file.info(tmp)$size <= 0) {
+    stop(
+      "Downloaded subset file for context `", context, "` is empty.",
       call. = FALSE
     )
   }

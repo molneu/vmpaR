@@ -6,9 +6,6 @@
 \usage{
 compass_gsc(
   context,
-  subset_dir = NULL,
-  cache_dir = NULL,
-  download_if_missing = TRUE,
   n = 250L,
   min_conf = 1L,
   targets = NULL,
@@ -21,15 +18,6 @@ compass_gsc(
 \item{context}{Character; preferred context, one of:
 \code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
 \code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, \code{"headneck"}.}
-
-\item{subset_dir}{Optional character scalar. Local directory containing
-subset files such as \code{glioma_subset.rds}. Checked before cache/download.}
-
-\item{cache_dir}{Optional character scalar. Override for the package cache
-directory. If \code{NULL}, a package-specific user cache directory is used.}
-
-\item{download_if_missing}{Logical. If \code{TRUE}, missing subset files are
-downloaded and cached automatically. Default: \code{TRUE}.}
 
 \item{n}{Integer. Number of bottom-ranked unique genes to include per
 reference signature. Default: \code{250L}.}
@@ -71,9 +59,18 @@ Public helper to extract COMPASS reference gene sets without running
 downstream scoring. This function reuses the same internal subset-resolution
 and gene-set-building logic as \code{compass()}.
 }
+\details{
+If the required context-specific subset is already available in the package
+cache, it is reused. Otherwise, it is downloaded automatically and cached
+for future runs.
+}
 \examples{
-gsc <- compass_gsc("glioma", output = "gsc")
-sig_meta <- attr(gsc, "signature_metadata")
-head(sig_meta)
+\dontrun{
+if (requireNamespace("GSEABase", quietly = TRUE)) {
+  gsc <- compass_gsc("glioma", output = "gsc")
+  sig_meta <- attr(gsc, "signature_metadata")
+  head(sig_meta)
+}
+}
 
 }

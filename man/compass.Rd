@@ -10,9 +10,6 @@ compass(
   algorithm = c("gsva", "fgsea"),
   gsva_score_scaling = c("none", "sample_wise_zscore", "sample_wise_population_sd",
     "signature_wise_zscore"),
-  subset_dir = NULL,
-  cache_dir = NULL,
-  download_if_missing = TRUE,
   n = 250L,
   min_conf = 1L,
   targets = NULL,
@@ -41,15 +38,6 @@ Default: \code{"gsva"}.}
 score matrices. One of \code{"none"}, \code{"sample_wise_zscore"},
 \code{"sample_wise_population_sd"}, or \code{"signature_wise_zscore"}.
 Default: \code{"none"}. Only used when \code{algorithm = "gsva"}.}
-
-\item{subset_dir}{Optional character scalar. Local directory containing
-subset files such as \code{glioma_subset.rds}. Checked before cache/download.}
-
-\item{cache_dir}{Optional character scalar. Override for the package cache
-directory. If \code{NULL}, a package-specific user cache directory is used.}
-
-\item{download_if_missing}{Logical. If \code{TRUE}, missing subset files are
-downloaded and cached automatically. Default: \code{TRUE}.}
 
 \item{n}{Integer. Number of bottom-ranked genes to include per reference
 signature when building COMPASS gene sets. Default: \code{250L}.}
@@ -94,8 +82,13 @@ Main user-facing function of the protivity package.
 \code{compass()} resolves the subset database for the selected cancer context,
 builds COMPASS gene sets internally, and then applies either GSVA or FGSEA
 to the user-provided query input.
+
+If the required context-specific subset is already available in the package
+cache, it is reused. Otherwise, it is downloaded automatically and cached
+for future runs.
 }
 \examples{
+\dontrun{
 if (requireNamespace("Biobase", quietly = TRUE)) {
   data(kebir_gb, package = "protivity")
 
@@ -106,6 +99,7 @@ if (requireNamespace("Biobase", quietly = TRUE)) {
     context = "glioma",
     algorithm = "gsva"
   )
+}
 }
 
 }
