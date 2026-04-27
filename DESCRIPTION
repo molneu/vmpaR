@@ -19,6 +19,7 @@ Imports:
     tools,
     utils
 Suggests:
+    Biobase,
     fgsea,
     GSVA,
     GSEABase,

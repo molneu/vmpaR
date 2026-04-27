@@ -13,23 +13,14 @@ library(protivity)
 ## Quick start
 
 ```r
-data(example_gbm_expr, package = "protivity")
+data(kebir_gb, package = "protivity")
+
+df <- Biobase::exprs(kebir_gb)
 
 gsva_result_example <- compass(
-  input = example_gbm_expr,
+  input = df,
   context = "glioma",
   algorithm = "gsva"
-)
-```
-
-```r
-data(example_u251_azd8055_rank, package = "protivity")
-
-fgsea_result_example <- compass(
-  input = example_u251_azd8055_rank,
-  context = "glioma",
-  algorithm = "fgsea",
-  targets = "MTOR"
 )
 ```
 

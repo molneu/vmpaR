@@ -95,3 +95,17 @@ Main user-facing function of the protivity package.
 builds COMPASS gene sets internally, and then applies either GSVA or FGSEA
 to the user-provided query input.
 }
+\examples{
+if (requireNamespace("Biobase", quietly = TRUE)) {
+  data(kebir_gb, package = "protivity")
+
+  df <- Biobase::exprs(kebir_gb)
+
+  gsva_result_example <- compass(
+    input = df,
+    context = "glioma",
+    algorithm = "gsva"
+  )
+}
+
+}

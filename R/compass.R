@@ -53,6 +53,19 @@
 #' - `context`
 #' - `algorithm`
 #'
+#' @examples
+#' if (requireNamespace("Biobase", quietly = TRUE)) {
+#'   data(kebir_gb, package = "protivity")
+#'
+#'   df <- Biobase::exprs(kebir_gb)
+#'
+#'   gsva_result_example <- compass(
+#'     input = df,
+#'     context = "glioma",
+#'     algorithm = "gsva"
+#'   )
+#' }
+#'
 #' @export
 compass <- function(input,
                     context,
