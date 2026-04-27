@@ -8,8 +8,7 @@ compass(
   input,
   context,
   algorithm = c("gsva", "fgsea"),
-  gsva_score_scaling = c("none", "sample_wise_zscore", "sample_wise_population_sd",
-    "signature_wise_zscore"),
+  gsva_score_scaling = c("none", "sample_z", "sample_pop_sd", "signature_z"),
   unique = TRUE,
   n = 250L,
   min_conf = 1L,
@@ -36,9 +35,11 @@ or rankings.
 Default: \code{"gsva"}.}
 
 \item{gsva_score_scaling}{Character scalar. Post-processing applied to GSVA
-score matrices. One of \code{"none"}, \code{"sample_wise_zscore"},
-\code{"sample_wise_population_sd"}, or \code{"signature_wise_zscore"}.
-Default: \code{"none"}. Only used when \code{algorithm = "gsva"}.}
+score matrices. One of \code{"none"}, \code{"sample_z"}, \code{"sample_pop_sd"}, or
+\code{"signature_z"}. \code{"sample_z"} applies z-score scaling within each sample.
+\code{"sample_pop_sd"} applies sample-wise scaling using the population standard
+deviation. \code{"signature_z"} applies z-score scaling across samples for each
+signature. Default: \code{"none"}. Only used when \code{algorithm = "gsva"}.}
 
 \item{unique}{Logical. If \code{TRUE}, reduce COMPASS output to one
 target/protein-level result per target. Multiple COMPASS signatures for

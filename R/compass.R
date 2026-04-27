@@ -49,9 +49,11 @@
 #' @param algorithm Character scalar. Either `"gsva"` or `"fgsea"`.
 #'   Default: `"gsva"`.
 #' @param gsva_score_scaling Character scalar. Post-processing applied to GSVA
-#'   score matrices. One of `"none"`, `"sample_wise_zscore"`,
-#'   `"sample_wise_population_sd"`, or `"signature_wise_zscore"`.
-#'   Default: `"none"`. Only used when `algorithm = "gsva"`.
+#'   score matrices. One of `"none"`, `"sample_z"`, `"sample_pop_sd"`, or
+#'   `"signature_z"`. `"sample_z"` applies z-score scaling within each sample.
+#'   `"sample_pop_sd"` applies sample-wise scaling using the population standard
+#'   deviation. `"signature_z"` applies z-score scaling across samples for each
+#'   signature. Default: `"none"`. Only used when `algorithm = "gsva"`.
 #' @param unique Logical. If `TRUE`, reduce COMPASS output to one
 #'   target/protein-level result per target. Multiple COMPASS signatures for
 #'   the same target are grouped by `cmap_name`. Validation metadata are used
@@ -120,9 +122,9 @@ compass <- function(input,
                     algorithm = c("gsva", "fgsea"),
                     gsva_score_scaling = c(
                       "none",
-                      "sample_wise_zscore",
-                      "sample_wise_population_sd",
-                      "signature_wise_zscore"
+                      "sample_z",
+                      "sample_pop_sd",
+                      "signature_z"
                     ),
                     unique = TRUE,
                     n = 250L,

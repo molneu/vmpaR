@@ -5,9 +5,9 @@
                               gene_set_list,
                               score_scaling = c(
                                 "none",
-                                "sample_wise_zscore",
-                                "sample_wise_population_sd",
-                                "signature_wise_zscore"
+                                "sample_z",
+                                "sample_pop_sd",
+                                "signature_z"
                               ),
                               verbose = TRUE) {
   score_scaling <- match.arg(score_scaling)
@@ -72,13 +72,13 @@
   if (score_scaling == "none") {
     .compass_msg(verbose, "No GSVA score scaling applied.")
 
-  } else if (score_scaling == "sample_wise_zscore") {
+  } else if (score_scaling == "sample_z") {
     .compass_msg(verbose, "Applying sample-wise z-score scaling to GSVA scores.")
     .compass_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample.")
     compass_result <- base::scale(compass_result)
     compass_result <- as.matrix(compass_result)
 
-  } else if (score_scaling == "sample_wise_population_sd") {
+  } else if (score_scaling == "sample_pop_sd") {
     .compass_msg(verbose, "Applying sample-wise population-SD scaling to GSVA scores.")
     .compass_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample using population-SD scaling.")
     N <- nrow(compass_result)
@@ -88,7 +88,7 @@
     )
     compass_result <- as.matrix(compass_result)
 
-  } else if (score_scaling == "signature_wise_zscore") {
+  } else if (score_scaling == "signature_z") {
     .compass_msg(verbose, "Applying signature-wise z-score scaling to GSVA scores.")
     .compass_msg(verbose, "Interpretation: emphasizes relative differences for each signature across samples.")
     compass_result <- t(base::scale(t(compass_result)))
