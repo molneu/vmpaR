@@ -1,10 +1,10 @@
 Package: protivity
 Title: Context-Matched Protein Activity Scoring
 Version: 0.0.0.9000
-Authors@R:
-    c(
-        person("Antonia", "Landgrebe", email = "antonia.landgrebe@stud.uni-due.de", role = c("aut", "cre")),
-        person("Igor", "Cima", role = "aut")
+Authors@R: c(
+    person("Igor", "Cima", role = "aut"),
+    person("Antonia", "Landgrebe", role = c("aut", "cre"),
+           email = "antonia.landgrebe@stud.uni-due.de")
     )
 Description: Tools for context-matched protein activity scoring from transcriptomic
     data using reference perturbation-derived signatures.
