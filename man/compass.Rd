@@ -2,7 +2,7 @@
 % Please edit documentation in R/compass.R
 \name{compass}
 \alias{compass}
-\title{Run COMPASS for one context and one analysis algorithm}
+\title{Run COMPASS}
 \usage{
 compass(
   input,
@@ -19,151 +19,131 @@ compass(
 )
 }
 \arguments{
-\item{input}{Main query input.
-\itemize{
-\item For \code{algorithm = "gsva"}: numeric matrix or data.frame with genes in rows
-and samples in columns.
-\item For \code{algorithm = "fgsea"}: named numeric vector of gene-level statistics
-or rankings.
-}}
+\item{input}{Query input.
+For \code{algorithm = "gsva"}, provide a numeric matrix or data frame with genes
+in rows and samples in columns. Gene identifiers must be stored in row
+names, and sample identifiers must be stored in column names.
+For \code{algorithm = "fgsea"}, provide a named numeric vector of gene-level
+statistics or rankings. Names must contain gene identifiers.}
 
-\item{context}{Character; preferred context, one of:
+\item{context}{Character scalar. Cancer context to use. One of:
 \code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
-\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, \code{"headneck"}.}
+\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, or \code{"headneck"}.}
 
-\item{algorithm}{Character scalar. Either \code{"gsva"} or \code{"fgsea"}.
-Default: \code{"gsva"}.}
+\item{algorithm}{Character scalar. Analysis workflow. Either \code{"gsva"} or
+\code{"fgsea"}. Default: \code{"gsva"}.}
 
-\item{gsva_score_scaling}{Character scalar. Post-processing applied to GSVA
-score matrices. One of \code{"none"}, \code{"sample_z"}, \code{"sample_pop_sd"}, or
-\code{"signature_z"}. \code{"sample_z"} applies z-score scaling within each sample.
-\code{"sample_pop_sd"} applies sample-wise scaling using the population standard
-deviation. \code{"signature_z"} applies z-score scaling across samples for each
-signature. Default: \code{"none"}. Only used when \code{algorithm = "gsva"}.}
+\item{gsva_score_scaling}{Character scalar. Optional post-processing applied
+to GSVA-derived COMPASS scores. One of \code{"none"}, \code{"sample_z"},
+\code{"sample_pop_sd"}, or \code{"signature_z"}. Only used when
+\code{algorithm = "gsva"}. Default: \code{"none"}.}
 
-\item{unique}{Logical. If \code{TRUE}, reduce COMPASS output to one
-target/protein-level result per target. Multiple COMPASS signatures for
-the same target are grouped by \code{cmap_name}. Validation metadata are used
-for prioritization if available; otherwise signatures with the highest
-\code{cps_conf_total} are used. For \code{algorithm = "gsva"}, equally prioritized
-signatures are averaged at the score level. For \code{algorithm = "fgsea"},
-one representative signature per target is selected before enrichment
-analysis. If \code{FALSE}, all COMPASS signatures are retained separately.
-Default: \code{TRUE}.}
+\item{unique}{Logical scalar. If \code{TRUE}, reduce results to one
+target/protein-level output per target. If \code{FALSE}, keep all COMPASS
+signatures separately. Default: \code{TRUE}.}
 
-\item{n}{Integer. Number of bottom-ranked genes to include per reference
-signature when building COMPASS gene sets. Default: \code{250L}.}
+\item{n}{Integer scalar. Number of bottom-ranked unique genes to include per
+COMPASS signature. Default: \code{250L}.}
 
-\item{min_conf}{Integer. Minimum \code{cps_conf_total} required for a
-reference signature to be included. Must be one of \code{1}, \code{2}, or \code{3}.
+\item{min_conf}{Integer scalar. Minimum confidence score required for a
+COMPASS signature to be included. Must be one of \code{1}, \code{2}, or \code{3}.
 Default: \code{1L}.}
 
-\item{targets}{Optional character vector. If provided, only signatures with
+\item{targets}{Optional character vector. If provided, only signatures for
 matching targets are retained. Default: \code{NULL}.}
 
-\item{driver_filter}{Logical. If \code{TRUE}, only signatures with
-\code{cancer_driver_summary != "None"} are retained. This is a broad filter:
-any non-\code{"None"} driver-related annotation is kept, not only canonical
-drivers. Default: \code{FALSE}.}
+\item{driver_filter}{Logical scalar. If \code{TRUE}, retain only signatures with
+a non-\code{"None"} cancer-driver annotation. This is a broad annotation filter,
+not a strict canonical-driver filter. Default: \code{FALSE}.}
 
-\item{return_gene_sets}{Logical. If \code{TRUE}, return a list containing the
-COMPASS result, the gene sets used for the analysis, and signature
-selection metadata. If \code{unique = FALSE}, \code{gene_sets} contains all gene sets
-passing the filters. If \code{unique = TRUE}, \code{gene_sets} contains the
-prioritized gene sets used to compute the target-level output. For GSVA,
-several gene sets may be retained for one target if they share the same
-highest priority; their scores are averaged in \code{compass_result}.
-Default: \code{FALSE}.}
+\item{return_gene_sets}{Logical scalar. If \code{TRUE}, return a list containing
+the COMPASS result, the gene sets used for the analysis, and selection
+metadata. Default: \code{FALSE}.}
 
-\item{verbose}{Logical. If \code{TRUE}, print progress messages for subset
-resolution, download steps, and optional GSVA score scaling. Default: \code{TRUE}.}
+\item{verbose}{Logical scalar. If \code{TRUE}, print progress messages. Default:
+\code{TRUE}.}
 }
 \value{
-If \code{return_gene_sets = FALSE}:
-\itemize{
-\item for \code{algorithm = "gsva"}: a numeric matrix of COMPASS scores. With
-\code{unique = TRUE}, rows correspond to target/protein names. With
-\code{unique = FALSE}, rows correspond to individual COMPASS signature names.
-\item for \code{algorithm = "fgsea"}: a data.frame of FGSEA results, annotated with
-target and signature metadata when available.
-}
+If \code{return_gene_sets = FALSE}, a \code{protivity_result} data frame.
+
+For \code{algorithm = "gsva"}, rows correspond to targets/proteins when
+\code{unique = TRUE} and to individual COMPASS signatures when \code{unique = FALSE}.
+Score columns correspond to samples.
+
+For \code{algorithm = "fgsea"}, rows correspond to tested COMPASS signatures and
+columns contain FGSEA enrichment statistics together with COMPASS metadata.
 
 If \code{return_gene_sets = TRUE}, a list with:
 \itemize{
-\item \code{compass_result}: COMPASS score matrix or FGSEA result table
-\item \code{gene_sets}: gene sets used for the analysis
-\item \code{context}: selected cancer context
-\item \code{algorithm}: selected analysis algorithm
-\item \code{unique}: whether target-level reduction was used
-\item \code{unique_selection}: metadata describing the selected signatures when
-\code{unique = TRUE}; otherwise \code{NULL}
+\item \code{compass_result}: the \code{protivity_result} data frame.
+\item \code{gene_sets}: gene sets used for the analysis.
+\item \code{signature_metadata}: metadata for the gene sets used.
+\item \code{context}: selected cancer context.
+\item \code{algorithm}: selected analysis workflow.
+\item \code{unique}: whether signature reduction was used.
+\item \code{unique_selection}: metadata describing selected signatures when
+\code{unique = TRUE}; otherwise \code{NULL}.
 }
 }
 \description{
-Main user-facing function of the protivity package.
+\code{compass()} applies context-matched COMPASS reference signatures to a user
+query using either a GSVA-based or FGSEA-based workflow.
 }
 \details{
-\code{compass()} resolves the subset database for the selected cancer context,
-builds COMPASS gene sets internally, and then applies either GSVA or FGSEA
-to the user-provided query input.
+With \code{algorithm = "gsva"}, the input is a gene-by-sample expression matrix.
+COMPASS returns a \code{protivity_result} data frame containing COMPASS metadata
+and one score column per sample.
 
-If the required context-specific subset is already available in the package
-cache, it is reused. Otherwise, it is downloaded automatically and cached
-for future runs.
+With \code{algorithm = "fgsea"}, the input is a named numeric vector of gene-level
+statistics or rankings. COMPASS returns a \code{protivity_result} data frame
+containing FGSEA enrichment statistics together with COMPASS metadata.
 
-COMPASS reference subsets may contain multiple perturbation signatures for
-the same target/protein. Internally, these signatures are identified by
-\code{gene_set_name}, while their target/protein is stored in \code{cmap_name}.
+The selected cancer context determines which COMPASS reference signatures are
+used. Required reference data are resolved automatically by protivity.
 
-With \code{unique = FALSE}, all COMPASS signatures passing the selected filters
-are retained as separate features.
+COMPASS reference data may contain multiple perturbation signatures for the
+same target/protein.
 
-With \code{unique = TRUE}, \code{compass()} reduces the output to target/protein level.
-Signatures are grouped by \code{cmap_name}. If validation metadata are available
-in the signature metadata, validated signatures are prioritized. If no
-validation metadata are available, signatures with the highest
-\code{cps_conf_total} are used.
+With \code{unique = FALSE}, all signatures passing the selected filters are kept
+as separate features.
+
+With \code{unique = TRUE}, signatures are grouped by their target/protein
+annotation (\code{cmap_name}). If validation metadata are available, validated
+signatures are prioritized. Among the remaining candidates, signatures with
+the highest \code{cps_conf_total} are retained.
 
 For \code{algorithm = "gsva"}, all equally prioritized signatures for the same
-target are scored and then averaged sample-wise. The returned score matrix
-therefore has one row per target/protein, with row names such as \code{"AKT1"}
-rather than signature names such as \code{"AKT1_..._c3"}.
+target/protein are scored separately. If \code{gsva_score_scaling} is not
+\code{"none"}, scaling is applied before target-level averaging. The final output
+contains one row per target/protein.
 
-For \code{algorithm = "fgsea"}, one representative signature per target is
-selected before enrichment analysis, because FGSEA p-values, adjusted
-p-values, and leading-edge genes are signature-level results and are not
-averaged.
-
-If \code{return_gene_sets = TRUE}, the returned list contains the gene sets used
-for the analysis and, when \code{unique = TRUE}, \code{unique_selection}, a metadata
-table describing which signatures were selected for target-level output.
+For \code{algorithm = "fgsea"}, retained signatures are tested separately.
+If multiple equally prioritized signatures remain for the same target/protein,
+they are returned as separate FGSEA rows rather than being averaged or
+arbitrarily collapsed.
 }
 \examples{
 \dontrun{
 if (requireNamespace("Biobase", quietly = TRUE)) {
   data(kebir_gb, package = "protivity")
 
-  # Example 1: GSVA workflow
-  df <- Biobase::exprs(kebir_gb)
+  # GSVA workflow
+  expr_mat <- Biobase::exprs(kebir_gb)
 
   gsva_result <- compass(
-    input = df,
+    input = expr_mat,
     context = "glioma",
     algorithm = "gsva"
   )
 
-  # Sample metadata are available via pData()
+  # FGSEA workflow
   sample_metadata <- Biobase::pData(kebir_gb)
 
-  # Example 2: FGSEA workflow
-  # Build a simple ranked vector contrasting relapse vs treatment-naive
-  # samples. This is a minimal example for demonstrating the required
-  # input format for algorithm = "fgsea".
   relapsed <- sample_metadata$relapse_TYPE != "n"
   naive <- sample_metadata$relapse_TYPE == "n"
 
-  stats_vec <- rowMeans(df[, relapsed, drop = FALSE]) -
-    rowMeans(df[, naive, drop = FALSE])
+  stats_vec <- rowMeans(expr_mat[, relapsed, drop = FALSE]) -
+    rowMeans(expr_mat[, naive, drop = FALSE])
 
   stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
   stats_vec <- sort(stats_vec, decreasing = TRUE)

@@ -27,9 +27,8 @@ The package includes the example dataset \link{kebir_gb}, a small glioblastoma
 
 \section{Citation}{
 
-Please cite the COMPASS paper and the protivity package when using COMPASS
-scores in scientific work. Citation information can be retrieved with
-\code{citation("protivity")}.
+Please cite the COMPASS paper when using protivity or COMPASS-derived scores
+in scientific work.
 }
 
 \author{

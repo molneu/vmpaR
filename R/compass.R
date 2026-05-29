@@ -1,133 +1,118 @@
-#' Run COMPASS for one context and one analysis algorithm
+#' Run COMPASS
 #'
-#' Main user-facing function of the protivity package.
+#' `compass()` applies context-matched COMPASS reference signatures to a user
+#' query using either a GSVA-based or FGSEA-based workflow.
 #'
-#' `compass()` resolves the subset database for the selected cancer context,
-#' builds COMPASS gene sets internally, and then applies either GSVA or FGSEA
-#' to the user-provided query input.
+#' With `algorithm = "gsva"`, the input is a gene-by-sample expression matrix.
+#' COMPASS returns a `protivity_result` data frame containing COMPASS metadata
+#' and one score column per sample.
 #'
-#' If the required context-specific subset is already available in the package
-#' cache, it is reused. Otherwise, it is downloaded automatically and cached
-#' for future runs.
+#' With `algorithm = "fgsea"`, the input is a named numeric vector of gene-level
+#' statistics or rankings. COMPASS returns a `protivity_result` data frame
+#' containing FGSEA enrichment statistics together with COMPASS metadata.
 #'
 #' @details
-#' COMPASS reference subsets may contain multiple perturbation signatures for
-#' the same target/protein. Internally, these signatures are identified by
-#' `gene_set_name`, while their target/protein is stored in `cmap_name`.
+#' The selected cancer context determines which COMPASS reference signatures are
+#' used. Required reference data are resolved automatically by protivity.
 #'
-#' With `unique = FALSE`, all COMPASS signatures passing the selected filters
-#' are retained as separate features.
+#' COMPASS reference data may contain multiple perturbation signatures for the
+#' same target/protein.
 #'
-#' With `unique = TRUE`, `compass()` reduces the output to target/protein level.
-#' Signatures are grouped by `cmap_name`. If validation metadata are available
-#' in the signature metadata, validated signatures are prioritized. If no
-#' validation metadata are available, signatures with the highest
-#' `cps_conf_total` are used.
+#' With `unique = FALSE`, all signatures passing the selected filters are kept
+#' as separate features.
+#'
+#' With `unique = TRUE`, signatures are grouped by their target/protein
+#' annotation (`cmap_name`). If validation metadata are available, validated
+#' signatures are prioritized. Among the remaining candidates, signatures with
+#' the highest `cps_conf_total` are retained.
 #'
 #' For `algorithm = "gsva"`, all equally prioritized signatures for the same
-#' target are scored and then averaged sample-wise. The returned score matrix
-#' therefore has one row per target/protein, with row names such as `"AKT1"`
-#' rather than signature names such as `"AKT1_..._c3"`.
+#' target/protein are scored separately. If `gsva_score_scaling` is not
+#' `"none"`, scaling is applied before target-level averaging. The final output
+#' contains one row per target/protein.
 #'
-#' For `algorithm = "fgsea"`, one representative signature per target is
-#' selected before enrichment analysis, because FGSEA p-values, adjusted
-#' p-values, and leading-edge genes are signature-level results and are not
-#' averaged.
+#' For `algorithm = "fgsea"`, retained signatures are tested separately.
+#' If multiple equally prioritized signatures remain for the same target/protein,
+#' they are returned as separate FGSEA rows rather than being averaged or
+#' arbitrarily collapsed.
 #'
-#' If `return_gene_sets = TRUE`, the returned list contains the gene sets used
-#' for the analysis and, when `unique = TRUE`, `unique_selection`, a metadata
-#' table describing which signatures were selected for target-level output.
-#'
-#' @param input Main query input.
-#'   - For `algorithm = "gsva"`: numeric matrix or data.frame with genes in rows
-#'     and samples in columns.
-#'   - For `algorithm = "fgsea"`: named numeric vector of gene-level statistics
-#'     or rankings.
-#' @param context Character; preferred context, one of:
+#' @param input Query input.
+#'   For `algorithm = "gsva"`, provide a numeric matrix or data frame with genes
+#'   in rows and samples in columns. Gene identifiers must be stored in row
+#'   names, and sample identifiers must be stored in column names.
+#'   For `algorithm = "fgsea"`, provide a named numeric vector of gene-level
+#'   statistics or rankings. Names must contain gene identifiers.
+#' @param context Character scalar. Cancer context to use. One of:
 #'   `"glioma"`, `"melanoma"`, `"nsclc"`, `"gastric"`, `"ovarian"`,
-#'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, `"headneck"`.
-#' @param algorithm Character scalar. Either `"gsva"` or `"fgsea"`.
-#'   Default: `"gsva"`.
-#' @param gsva_score_scaling Character scalar. Post-processing applied to GSVA
-#'   score matrices. One of `"none"`, `"sample_z"`, `"sample_pop_sd"`, or
-#'   `"signature_z"`. `"sample_z"` applies z-score scaling within each sample.
-#'   `"sample_pop_sd"` applies sample-wise scaling using the population standard
-#'   deviation. `"signature_z"` applies z-score scaling across samples for each
-#'   signature. Default: `"none"`. Only used when `algorithm = "gsva"`.
-#' @param unique Logical. If `TRUE`, reduce COMPASS output to one
-#'   target/protein-level result per target. Multiple COMPASS signatures for
-#'   the same target are grouped by `cmap_name`. Validation metadata are used
-#'   for prioritization if available; otherwise signatures with the highest
-#'   `cps_conf_total` are used. For `algorithm = "gsva"`, equally prioritized
-#'   signatures are averaged at the score level. For `algorithm = "fgsea"`,
-#'   one representative signature per target is selected before enrichment
-#'   analysis. If `FALSE`, all COMPASS signatures are retained separately.
-#'   Default: `TRUE`.
-#' @param n Integer. Number of bottom-ranked genes to include per reference
-#'   signature when building COMPASS gene sets. Default: `250L`.
-#' @param min_conf Integer. Minimum `cps_conf_total` required for a
-#'   reference signature to be included. Must be one of `1`, `2`, or `3`.
+#'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, or `"headneck"`.
+#' @param algorithm Character scalar. Analysis workflow. Either `"gsva"` or
+#'   `"fgsea"`. Default: `"gsva"`.
+#' @param gsva_score_scaling Character scalar. Optional post-processing applied
+#'   to GSVA-derived COMPASS scores. One of `"none"`, `"sample_z"`,
+#'   `"sample_pop_sd"`, or `"signature_z"`. Only used when
+#'   `algorithm = "gsva"`. Default: `"none"`.
+#' @param unique Logical scalar. If `TRUE`, reduce results to one
+#'   target/protein-level output per target. If `FALSE`, keep all COMPASS
+#'   signatures separately. Default: `TRUE`.
+#' @param n Integer scalar. Number of bottom-ranked unique genes to include per
+#'   COMPASS signature. Default: `250L`.
+#' @param min_conf Integer scalar. Minimum confidence score required for a
+#'   COMPASS signature to be included. Must be one of `1`, `2`, or `3`.
 #'   Default: `1L`.
-#' @param targets Optional character vector. If provided, only signatures with
+#' @param targets Optional character vector. If provided, only signatures for
 #'   matching targets are retained. Default: `NULL`.
-#' @param driver_filter Logical. If `TRUE`, only signatures with
-#'   `cancer_driver_summary != "None"` are retained. This is a broad filter:
-#'   any non-`"None"` driver-related annotation is kept, not only canonical
-#'   drivers. Default: `FALSE`.
-#' @param return_gene_sets Logical. If `TRUE`, return a list containing the
-#'   COMPASS result, the gene sets used for the analysis, and signature
-#'   selection metadata. If `unique = FALSE`, `gene_sets` contains all gene sets
-#'   passing the filters. If `unique = TRUE`, `gene_sets` contains the
-#'   prioritized gene sets used to compute the target-level output. For GSVA,
-#'   several gene sets may be retained for one target if they share the same
-#'   highest priority; their scores are averaged in `compass_result`.
-#'   Default: `FALSE`.
-#' @param verbose Logical. If `TRUE`, print progress messages for subset
-#'   resolution, download steps, and optional GSVA score scaling. Default: `TRUE`.
+#' @param driver_filter Logical scalar. If `TRUE`, retain only signatures with
+#'   a non-`"None"` cancer-driver annotation. This is a broad annotation filter,
+#'   not a strict canonical-driver filter. Default: `FALSE`.
+#' @param return_gene_sets Logical scalar. If `TRUE`, return a list containing
+#'   the COMPASS result, the gene sets used for the analysis, and selection
+#'   metadata. Default: `FALSE`.
+#' @param verbose Logical scalar. If `TRUE`, print progress messages. Default:
+#'   `TRUE`.
 #'
 #' @return
-#' If `return_gene_sets = FALSE`:
-#' - for `algorithm = "gsva"`: a numeric matrix of COMPASS scores. With
-#'   `unique = TRUE`, rows correspond to target/protein names. With
-#'   `unique = FALSE`, rows correspond to individual COMPASS signature names.
-#' - for `algorithm = "fgsea"`: a data.frame of FGSEA results, annotated with
-#'   target and signature metadata when available.
+#' If `return_gene_sets = FALSE`, a `protivity_result` data frame.
+#'
+#' For `algorithm = "gsva"`, rows correspond to targets/proteins when
+#' `unique = TRUE` and to individual COMPASS signatures when `unique = FALSE`.
+#' Score columns correspond to samples.
+#'
+#' For `algorithm = "fgsea"`, rows correspond to tested COMPASS signatures and
+#' columns contain FGSEA enrichment statistics together with COMPASS metadata.
 #'
 #' If `return_gene_sets = TRUE`, a list with:
-#' - `compass_result`: COMPASS score matrix or FGSEA result table
-#' - `gene_sets`: gene sets used for the analysis
-#' - `context`: selected cancer context
-#' - `algorithm`: selected analysis algorithm
-#' - `unique`: whether target-level reduction was used
-#' - `unique_selection`: metadata describing the selected signatures when
-#'   `unique = TRUE`; otherwise `NULL`
+#'
+#' - `compass_result`: the `protivity_result` data frame.
+#' - `gene_sets`: gene sets used for the analysis.
+#' - `signature_metadata`: metadata for the gene sets used.
+#' - `context`: selected cancer context.
+#' - `algorithm`: selected analysis workflow.
+#' - `unique`: whether signature reduction was used.
+#' - `unique_selection`: metadata describing selected signatures when
+#'   `unique = TRUE`; otherwise `NULL`.
 #'
 #' @examples
 #' \dontrun{
 #' if (requireNamespace("Biobase", quietly = TRUE)) {
 #'   data(kebir_gb, package = "protivity")
 #'
-#'   # Example 1: GSVA workflow
-#'   df <- Biobase::exprs(kebir_gb)
+#'   # GSVA workflow
+#'   expr_mat <- Biobase::exprs(kebir_gb)
 #'
 #'   gsva_result <- compass(
-#'     input = df,
+#'     input = expr_mat,
 #'     context = "glioma",
 #'     algorithm = "gsva"
 #'   )
 #'
-#'   # Sample metadata are available via pData()
+#'   # FGSEA workflow
 #'   sample_metadata <- Biobase::pData(kebir_gb)
 #'
-#'   # Example 2: FGSEA workflow
-#'   # Build a simple ranked vector contrasting relapse vs treatment-naive
-#'   # samples. This is a minimal example for demonstrating the required
-#'   # input format for algorithm = "fgsea".
 #'   relapsed <- sample_metadata$relapse_TYPE != "n"
 #'   naive <- sample_metadata$relapse_TYPE == "n"
 #'
-#'   stats_vec <- rowMeans(df[, relapsed, drop = FALSE]) -
-#'     rowMeans(df[, naive, drop = FALSE])
+#'   stats_vec <- rowMeans(expr_mat[, relapsed, drop = FALSE]) -
+#'     rowMeans(expr_mat[, naive, drop = FALSE])
 #'
 #'   stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
 #'   stats_vec <- sort(stats_vec, decreasing = TRUE)
@@ -220,24 +205,19 @@ compass <- function(input,
     stop("No COMPASS gene sets available after filtering.", call. = FALSE)
   }
 
-  # 3) Optionally reduce multiple signatures per target/protein
+  # 3) Optionally prioritize signatures per target/protein
   if (isTRUE(unique)) {
-    if (algorithm == "gsva") {
-      gene_set_list <- .compass_select_unique_candidates(
-        gene_set_list = gene_set_list,
-        mode = "aggregate"
-      )
-    } else if (algorithm == "fgsea") {
-      gene_set_list <- .compass_select_unique_candidates(
-        gene_set_list = gene_set_list,
-        mode = "representative"
-      )
-    }
+    gene_set_list <- .compass_select_unique_candidates(
+      gene_set_list = gene_set_list
+    )
   }
 
   if (length(gene_set_list) == 0L) {
     stop("No COMPASS gene sets available after unique reduction.", call. = FALSE)
   }
+
+  # Metadata for the gene sets that are actually used for scoring
+  signature_metadata <- attr(gene_set_list, "signature_metadata")
 
   # 4) Run analysis with the selected algorithm
   if (algorithm == "gsva") {
@@ -251,9 +231,17 @@ compass <- function(input,
     if (isTRUE(unique)) {
       compass_result <- .compass_reduce_unique_gsva_scores(
         score_mat = compass_result,
-        signature_metadata = attr(gene_set_list, "signature_metadata")
+        signature_metadata = signature_metadata
       )
     }
+
+    compass_result <- .compass_format_gsva_result(
+      score_mat = compass_result,
+      signature_metadata = signature_metadata,
+      context = context,
+      algorithm = algorithm,
+      unique = unique
+    )
 
   } else if (algorithm == "fgsea") {
     compass_result <- .compass_run_fgsea(
@@ -266,8 +254,6 @@ compass <- function(input,
       max_size = 500L,
       n_perm_simple = 5000L
     )
-
-    signature_metadata <- attr(gene_set_list, "signature_metadata")
 
     if (!is.null(signature_metadata) &&
         is.data.frame(signature_metadata) &&
@@ -287,6 +273,13 @@ compass <- function(input,
         compass_result$cps_conf_total <- signature_metadata$cps_conf_total[meta_idx]
       }
     }
+
+    compass_result <- .compass_format_fgsea_result(
+      compass_result = compass_result,
+      context = context,
+      algorithm = algorithm,
+      unique = unique
+    )
   }
 
   # 5) Return result
@@ -294,6 +287,7 @@ compass <- function(input,
     return(list(
       compass_result = compass_result,
       gene_sets = gene_set_list,
+      signature_metadata = attr(gene_set_list, "signature_metadata"),
       context = context,
       algorithm = algorithm,
       unique = unique,

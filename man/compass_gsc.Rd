@@ -2,7 +2,7 @@
 % Please edit documentation in R/compass_gsc.R
 \name{compass_gsc}
 \alias{compass_gsc}
-\title{Build COMPASS gene sets for one context}
+\title{Retrieve COMPASS gene sets}
 \usage{
 compass_gsc(
   context,
@@ -10,66 +10,86 @@ compass_gsc(
   min_conf = 1L,
   targets = NULL,
   driver_filter = FALSE,
+  unique = FALSE,
   output = c("list", "df", "gsc"),
   verbose = TRUE
 )
 }
 \arguments{
-\item{context}{Character; preferred context, one of:
+\item{context}{Character scalar. Cancer context to use. One of:
 \code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
-\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, \code{"headneck"}.}
+\code{"crc"}, \code{"breast"}, \code{"prostate"}, \code{"pdac"}, or \code{"headneck"}.}
 
-\item{n}{Integer. Number of bottom-ranked unique genes to include per
-reference signature. Default: \code{250L}.}
+\item{n}{Integer scalar. Number of bottom-ranked unique genes to include per
+COMPASS signature. Default: \code{250L}.}
 
-\item{min_conf}{Integer. Minimum \code{cps_conf_total} required for a
-reference signature to be included. Must be one of \code{1}, \code{2}, or \code{3}.
+\item{min_conf}{Integer scalar. Minimum COMPASS confidence level required for
+a signature to be included. Must be one of \code{1}, \code{2}, or \code{3}.
 Default: \code{1L}.}
 
-\item{targets}{Optional character vector. If provided, only signatures with
+\item{targets}{Optional character vector. If provided, only signatures for
 matching targets are retained. Default: \code{NULL}.}
 
-\item{driver_filter}{Logical. If \code{TRUE}, only signatures with
-\code{cancer_driver_summary != "None"} are retained. This is a broad filter:
-any non-\code{"None"} driver-related annotation is kept, not only canonical
-drivers. Default: \code{FALSE}.}
+\item{driver_filter}{Logical scalar. If \code{TRUE}, retain only signatures with
+a non-\code{"None"} cancer-driver annotation. This is a broad annotation filter,
+not a strict canonical-driver filter. Default: \code{FALSE}.}
 
-\item{output}{Character scalar. Output format. One of \code{"list"}, \code{"df"},
-or \code{"gsc"}. Default: \code{"list"}.}
+\item{unique}{Logical scalar. If \code{TRUE}, retain the highest-priority gene
+sets per target/protein. If \code{FALSE}, keep all COMPASS signatures passing
+the selected filters. Default: \code{FALSE}.}
 
-\item{verbose}{Logical. If \code{TRUE}, print progress messages for subset
-resolution and download steps. Default: \code{TRUE}.}
+\item{output}{Character scalar. Output format. One of \code{"list"}, \code{"df"}, or
+\code{"gsc"}. Default: \code{"list"}.}
+
+\item{verbose}{Logical scalar. If \code{TRUE}, print progress messages. Default:
+\code{TRUE}.}
 }
 \value{
 Depending on \code{output}:
 \itemize{
-\item \code{"list"}: named list of character vectors
-\item \code{"df"}: data frame with one column per gene set
-\item \code{"gsc"}: \code{GSEABase::GeneSetCollection}
+\item \code{"list"}: a named list of character vectors.
+\item \code{"df"}: a data frame with one column per gene set. Shorter gene sets are
+padded with \code{NA}.
+\item \code{"gsc"}: a \code{GSEABase::GeneSetCollection}.
 }
 
-For all outputs, signature-level metadata are attached as
-\code{attr(x, "signature_metadata")}. These metadata describe the reference
-signatures underlying the returned gene sets and may include fields such as
-\code{gene_set_name}, \code{id}, \code{cmap_name}, \code{cps_conf_total}, and
-\code{cancer_driver_summary}. Row names correspond to gene-set names.
+Signature-level metadata are attached as \code{attr(x, "signature_metadata")}.
+If \code{unique = TRUE}, selection metadata are attached as
+\code{attr(x, "unique_selection")} when available.
 }
 \description{
-Public helper to extract COMPASS reference gene sets without running
-downstream scoring. This function reuses the same internal subset-resolution
-and gene-set-building logic as \code{compass()}.
+\code{compass_gsc()} returns COMPASS gene sets for a selected cancer context
+without running GSVA or FGSEA.
 }
 \details{
-If the required context-specific subset is already available in the package
-cache, it is reused. Otherwise, it is downloaded automatically and cached
-for future runs.
+Use this function to inspect, export, or reuse the reference gene sets that
+are used by \code{\link[=compass]{compass()}}.
+
+The selected cancer context determines which COMPASS reference signatures are
+used. Required reference data are resolved automatically by protivity.
+
+By default, \code{compass_gsc()} returns all signatures passing the selected
+filters. If \code{unique = TRUE}, signatures are prioritized within each
+target/protein: validated signatures are preferred when available, and among
+the remaining candidates signatures with the highest \code{cps_conf_total} are
+retained. Tied candidates are kept.
 }
 \examples{
 \dontrun{
+# Return all glioma COMPASS gene sets as a named list
+gene_sets <- compass_gsc("glioma")
+
+# Return highest-priority gene sets per target/protein
+# Tied candidates are retained.
+gene_sets_unique <- compass_gsc("glioma", unique = TRUE)
+
+# Inspect signature metadata
+sig_meta <- attr(gene_sets, "signature_metadata")
+head(sig_meta)
+
+# Return a GeneSetCollection
 if (requireNamespace("GSEABase", quietly = TRUE)) {
   gsc <- compass_gsc("glioma", output = "gsc")
-  sig_meta <- attr(gsc, "signature_metadata")
-  head(sig_meta)
 }
 }
 

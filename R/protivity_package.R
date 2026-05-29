@@ -17,9 +17,8 @@
 #' `Biobase::exprs(kebir_gb)` and used as input for GSVA-based COMPASS scoring.
 #'
 #' @section Citation:
-#' Please cite the COMPASS paper and the protivity package when using COMPASS
-#' scores in scientific work. Citation information can be retrieved with
-#' `citation("protivity")`.
+#' Please cite the COMPASS paper when using protivity or COMPASS-derived scores
+#' in scientific work.
 #'
 #' @keywords internal
 "_PACKAGE"
