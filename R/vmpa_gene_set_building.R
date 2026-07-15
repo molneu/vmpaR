@@ -133,13 +133,14 @@
 
   gene_set_list <- lapply(seq_len(ncol(mat)), function(j) {
     vals <- as.numeric(mat[, j])
-    ord <- suppressWarnings(order(vals, decreasing = FALSE, na.last = "keep"))
+    genes <- trimws(rownames(mat))
+    keep <- is.finite(vals) & !is.na(genes) & nzchar(genes)
 
-    ordered_genes <- rownames(mat)[ord]
-    ordered_genes <- ordered_genes[!is.na(ordered_genes) & ordered_genes != ""]
+    ord <- order(vals[keep], decreasing = FALSE)
+    ordered_genes <- genes[keep][ord]
     ordered_unique_genes <- unique(ordered_genes)
 
-    head(ordered_unique_genes, n)
+    utils::head(ordered_unique_genes, n)
   })
 
   names(gene_set_list) <- gene_set_names

@@ -15,16 +15,21 @@ vmpa(
   targets = NULL,
   driver_filter = FALSE,
   return_gene_sets = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  seed = 123L,
+  gsva_min_size = 1L,
+  fgsea_min_size = 10L
 )
 }
 \arguments{
 \item{input}{Query input.
 For \code{algorithm = "gsva"}, provide a numeric matrix or data frame with genes
-in rows and samples in columns. Gene identifiers must be stored in row
-names, and sample identifiers must be stored in column names.
+in rows and samples in columns. Unique human gene symbols must be stored in
+row names, and sample identifiers must be stored in column names.
 For \code{algorithm = "fgsea"}, provide a named numeric vector of gene-level
-statistics or rankings. Names must contain gene identifiers.}
+statistics or rankings. Names must contain unique human gene symbols.
+Gene-symbol matching is case-sensitive. Ensembl and Entrez identifiers are
+not converted automatically.}
 
 \item{context}{Character scalar. Cancer context to use. One of:
 \code{"glioma"}, \code{"melanoma"}, \code{"nsclc"}, \code{"gastric"}, \code{"ovarian"},
@@ -62,6 +67,19 @@ metadata. Default: \code{FALSE}.}
 
 \item{verbose}{Logical scalar. If \code{TRUE}, print progress messages. Default:
 \code{TRUE}.}
+
+\item{seed}{\code{NULL} or a single integer. Random seed applied locally to the
+complete FGSEA backend call. Set to \code{NULL} to use the current global random
+state without package-controlled seeding. Not used by GSVA. Default:
+\code{123L}.}
+
+\item{gsva_min_size}{Integer scalar. Minimum number of input genes represented
+in a VMPA gene set for the GSVA backend. Default: \code{1L}, preserving the GSVA
+default and the original VMPA GSVA workflow.}
+
+\item{fgsea_min_size}{Integer scalar. Minimum number of finite ranked input
+genes represented in a VMPA gene set for the FGSEA backend. Default: \code{10L},
+preserving the original VMPA FGSEA workflow.}
 }
 \value{
 If \code{return_gene_sets = FALSE}, a \code{vmpa_result} data frame.
@@ -121,6 +139,28 @@ For \code{algorithm = "fgsea"}, retained signatures are tested separately.
 If multiple equally prioritized signatures remain for the same target/protein,
 they are returned as separate FGSEA rows rather than being averaged or
 arbitrarily collapsed.
+
+The \code{seed} is applied locally around the complete FGSEA backend call. The
+user's global random-number state is restored afterwards, including when the
+backend raises an error. Set \code{seed = NULL} to disable package-controlled
+seeding. The parameter has no effect when \code{algorithm = "gsva"}.
+
+Input gene identifiers must be unique, case-sensitive human gene symbols
+matching those used by the VMPA/LINCS reference (for example \code{TP53}, \code{EGFR},
+or \code{AKT1}). Ensembl and Entrez identifiers are not converted automatically.
+Missing, blank, whitespace-padded, or duplicated input symbols are rejected.
+
+Overlap is evaluated separately for every selected VMPA gene set after
+non-finite FGSEA statistics have been removed. GSVA retains gene sets with at
+least \code{gsva_min_size} represented genes; FGSEA uses \code{fgsea_min_size}.
+If no input symbol matches or no gene set reaches the relevant threshold,
+VMPA stops before calling the backend. With \code{verbose = TRUE}, VMPA reports
+the global overlap, threshold exclusions, and the number of sets actually
+used by the backend.
+
+Duplicate symbols in the VMPA reference are handled during gene-set
+construction: the occurrence with the lowest reference-signature value is
+retained, and a symbol counts at most once toward \code{n}.
 }
 \examples{
 \dontrun{

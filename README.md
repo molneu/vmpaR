@@ -54,6 +54,28 @@ For the GSVA workflow, `vmpa()` returns a `vmpa_result` data frame. Rows corresp
 
 Optional GSVA score scaling modes include `"sample_z"`, `"sample_pop_sd"`, and `"signature_z"`.
 
+## Gene identifiers and overlap
+
+Input identifiers must be unique, case-sensitive human gene symbols matching
+the symbols used by the VMPA/LINCS reference, for example `TP53`, `EGFR`, or
+`AKT1`. Ensembl and Entrez identifiers are not converted automatically.
+Missing, blank, whitespace-padded, and duplicated input symbols are rejected.
+
+VMPA calculates the input overlap separately for every selected gene set. The
+default thresholds preserve the original backend-specific workflows:
+
+- `gsva_min_size = 1L`
+- `fgsea_min_size = 10L`
+
+With `verbose = TRUE`, `vmpa()` reports the number of matching input genes,
+the number of gene sets retained by the relevant threshold, and the number
+actually used by the backend. The analysis stops before the backend call if
+there is no matching gene symbol or no selected gene set reaches the threshold.
+
+If a symbol occurs more than once in a VMPA reference matrix, the occurrence
+with the lowest reference-signature value is retained. Each symbol counts at
+most once toward the requested gene-set size `n`.
+
 ## FGSEA workflow
 
 For FGSEA, provide a named numeric vector of gene-level statistics or rankings.

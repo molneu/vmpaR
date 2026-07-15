@@ -20,14 +20,15 @@ Imports:
     methods,
     stats,
     tools,
-    utils
+    utils,
+    withr
 Suggests:
     Biobase,
     fgsea,
-    GSVA,
+    GSVA (>= 1.50.0),
     GSEABase,
     testthat
 Config/testthat/edition: 3
 Depends:
-    R (>= 3.5)
+    R (>= 4.3)
 LazyData: true

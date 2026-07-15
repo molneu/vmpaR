@@ -1,8 +1,23 @@
 # Internal analysis-algorithm utilities for vmpaR
 # These functions are not user-facing and should not be exported.
 
+.vmpa_validate_seed <- function(seed) {
+  if (is.null(seed)) {
+    return(NULL)
+  }
+
+  if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) ||
+      !is.finite(seed) || seed != trunc(seed) ||
+      seed < -.Machine$integer.max || seed > .Machine$integer.max) {
+    stop("`seed` must be NULL or a single non-missing integer.", call. = FALSE)
+  }
+
+  as.integer(seed)
+}
+
 .vmpa_run_gsva <- function(expr_mat,
                               gene_set_list,
+                              min_size = 1L,
                               score_scaling = c(
                                 "none",
                                 "sample_z",
@@ -11,36 +26,13 @@
                               ),
                               verbose = TRUE) {
   score_scaling <- match.arg(score_scaling)
+  min_size <- .vmpa_validate_min_size(min_size, "gsva_min_size")
 
   if (!requireNamespace("GSVA", quietly = TRUE)) {
     stop("Package `GSVA` must be installed for `algorithm = \"gsva\"`.", call. = FALSE)
   }
 
-  if (!(is.matrix(expr_mat) || is.data.frame(expr_mat))) {
-    stop(
-      "`algorithm = \"gsva\"` requires `input` to be a matrix or data.frame ",
-      "with genes in rows and samples in columns.",
-      call. = FALSE
-    )
-  }
-
-  expr_mat <- as.matrix(expr_mat)
-
-  if (!is.numeric(expr_mat)) {
-    stop("`input` must contain numeric expression values.", call. = FALSE)
-  }
-
-  if (is.null(rownames(expr_mat))) {
-    stop("`input` must have gene names as rownames.", call. = FALSE)
-  }
-
-  if (is.null(colnames(expr_mat))) {
-    stop("`input` must have sample names as colnames.", call. = FALSE)
-  }
-
-  if (anyNA(expr_mat) || any(!is.finite(expr_mat))) {
-    stop("`input` contains NA, NaN, or infinite values.", call. = FALSE)
-  }
+  expr_mat <- .vmpa_prepare_gsva_input(expr_mat)
 
   if (!is.list(gene_set_list)) {
     stop("`gene_set_list` must be a list.", call. = FALSE)
@@ -61,10 +53,27 @@
   gsva_par <- GSVA::gsvaParam(
     exprData = expr_mat,
     geneSets = gene_set_list,
+    minSize = min_size,
     maxDiff = TRUE
   )
 
-  vmpa_result <- GSVA::gsva(gsva_par)
+  backend_gene_sets <- GSVA::geneSets(gsva_par)
+  expected_sizes <- vapply(
+    gene_set_list,
+    function(gene_set) length(intersect(rownames(expr_mat), unique(gene_set))),
+    integer(1)
+  )
+  expected_sizes <- expected_sizes[expected_sizes >= min_size]
+
+  if (!setequal(names(backend_gene_sets), names(expected_sizes)) ||
+      any(lengths(backend_gene_sets)[names(expected_sizes)] != expected_sizes)) {
+    stop(
+      "Internal error: GSVA gene-set mapping differs from the VMPA overlap calculation.",
+      call. = FALSE
+    )
+  }
+
+  vmpa_result <- GSVA::gsva(gsva_par, verbose = verbose)
 
   vmpa_result <- as.matrix(vmpa_result)
   attr(vmpa_result, "geneSets") <- NULL
@@ -105,38 +114,13 @@
                                conf,
                                min_size = 10L,
                                max_size = 500L,
-                               n_perm_simple = 5000L) {
+                               n_perm_simple = 5000L,
+                               seed = 123L) {
   if (!requireNamespace("fgsea", quietly = TRUE)) {
     stop("Package `fgsea` must be installed for `algorithm = \"fgsea\"`.", call. = FALSE)
   }
 
-  if (!is.numeric(stats_vec)) {
-    stop(
-      "`algorithm = \"fgsea\"` requires `input` to be a named numeric vector.",
-      call. = FALSE
-    )
-  }
-
-  if (is.null(names(stats_vec))) {
-    stop(
-      "`algorithm = \"fgsea\"` requires a named numeric vector ",
-      "(gene names as names).",
-      call. = FALSE
-    )
-  }
-
-  if (anyNA(names(stats_vec)) || any(names(stats_vec) == "")) {
-    stop("`input` contains missing or empty gene names.", call. = FALSE)
-  }
-
-  if (anyDuplicated(names(stats_vec)) > 0L) {
-    dup_names <- unique(names(stats_vec)[duplicated(names(stats_vec))])
-    stop(
-      "`input` contains duplicated gene names. Examples: ",
-      paste(utils::head(dup_names, 10), collapse = ", "),
-      call. = FALSE
-    )
-  }
+  stats_vec <- .vmpa_prepare_fgsea_input(stats_vec)
 
   if (!is.list(gene_set_list)) {
     stop("`gene_set_list` must be a list.", call. = FALSE)
@@ -166,9 +150,7 @@
   }
   conf <- as.integer(conf)
 
-  if (!is.numeric(min_size) || length(min_size) != 1L || is.na(min_size) || min_size <= 0) {
-    stop("`min_size` must be a single positive number.", call. = FALSE)
-  }
+  min_size <- .vmpa_validate_min_size(min_size, "fgsea_min_size")
 
   if (!is.numeric(max_size) || length(max_size) != 1L || is.na(max_size) || max_size <= 0) {
     stop("`max_size` must be a single positive number.", call. = FALSE)
@@ -178,29 +160,29 @@
     stop("`n_perm_simple` must be a single positive number.", call. = FALSE)
   }
 
-  min_size <- as.integer(min_size)
   max_size <- as.integer(max_size)
   n_perm_simple <- as.integer(n_perm_simple)
+  seed <- .vmpa_validate_seed(seed)
 
   if (min_size > max_size) {
     stop("`min_size` must be <= `max_size`.", call. = FALSE)
   }
 
-  stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
-
-  if (length(stats_vec) == 0L) {
-    stop("`input` contains no finite numeric values after filtering.", call. = FALSE)
+  run_fgsea <- function() {
+    fgsea::fgseaMultilevel(
+      pathways = gene_set_list,
+      stats = stats_vec,
+      minSize = min_size,
+      maxSize = max_size,
+      nPermSimple = n_perm_simple
+    )
   }
 
-  stats_vec <- sort(stats_vec, decreasing = TRUE)
-
-  fgsea_result <- fgsea::fgseaMultilevel(
-    pathways = gene_set_list,
-    stats = stats_vec,
-    minSize = min_size,
-    maxSize = max_size,
-    nPermSimple = n_perm_simple
-  )
+  fgsea_result <- if (is.null(seed)) {
+    run_fgsea()
+  } else {
+    withr::with_seed(seed, run_fgsea())
+  }
 
   vmpa_result <- as.data.frame(fgsea_result, stringsAsFactors = FALSE)
   vmpa_result$context <- context

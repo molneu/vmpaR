@@ -36,12 +36,36 @@
 #' they are returned as separate FGSEA rows rather than being averaged or
 #' arbitrarily collapsed.
 #'
+#' The `seed` is applied locally around the complete FGSEA backend call. The
+#' user's global random-number state is restored afterwards, including when the
+#' backend raises an error. Set `seed = NULL` to disable package-controlled
+#' seeding. The parameter has no effect when `algorithm = "gsva"`.
+#'
+#' Input gene identifiers must be unique, case-sensitive human gene symbols
+#' matching those used by the VMPA/LINCS reference (for example `TP53`, `EGFR`,
+#' or `AKT1`). Ensembl and Entrez identifiers are not converted automatically.
+#' Missing, blank, whitespace-padded, or duplicated input symbols are rejected.
+#'
+#' Overlap is evaluated separately for every selected VMPA gene set after
+#' non-finite FGSEA statistics have been removed. GSVA retains gene sets with at
+#' least `gsva_min_size` represented genes; FGSEA uses `fgsea_min_size`.
+#' If no input symbol matches or no gene set reaches the relevant threshold,
+#' VMPA stops before calling the backend. With `verbose = TRUE`, VMPA reports
+#' the global overlap, threshold exclusions, and the number of sets actually
+#' used by the backend.
+#'
+#' Duplicate symbols in the VMPA reference are handled during gene-set
+#' construction: the occurrence with the lowest reference-signature value is
+#' retained, and a symbol counts at most once toward `n`.
+#'
 #' @param input Query input.
 #'   For `algorithm = "gsva"`, provide a numeric matrix or data frame with genes
-#'   in rows and samples in columns. Gene identifiers must be stored in row
-#'   names, and sample identifiers must be stored in column names.
+#'   in rows and samples in columns. Unique human gene symbols must be stored in
+#'   row names, and sample identifiers must be stored in column names.
 #'   For `algorithm = "fgsea"`, provide a named numeric vector of gene-level
-#'   statistics or rankings. Names must contain gene identifiers.
+#'   statistics or rankings. Names must contain unique human gene symbols.
+#'   Gene-symbol matching is case-sensitive. Ensembl and Entrez identifiers are
+#'   not converted automatically.
 #' @param context Character scalar. Cancer context to use. One of:
 #'   `"glioma"`, `"melanoma"`, `"nsclc"`, `"gastric"`, `"ovarian"`,
 #'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, or `"headneck"`.
@@ -51,6 +75,12 @@
 #'   to GSVA-derived VMPA scores. One of `"none"`, `"sample_z"`,
 #'   `"sample_pop_sd"`, or `"signature_z"`. Only used when
 #'   `algorithm = "gsva"`. Default: `"none"`.
+#' @param gsva_min_size Integer scalar. Minimum number of input genes represented
+#'   in a VMPA gene set for the GSVA backend. Default: `1L`, preserving the GSVA
+#'   default and the original VMPA GSVA workflow.
+#' @param fgsea_min_size Integer scalar. Minimum number of finite ranked input
+#'   genes represented in a VMPA gene set for the FGSEA backend. Default: `10L`,
+#'   preserving the original VMPA FGSEA workflow.
 #' @param unique Logical scalar. If `TRUE`, reduce results to one
 #'   target/protein-level output per target. If `FALSE`, keep all VMPA
 #'   signatures separately. Default: `TRUE`.
@@ -67,6 +97,10 @@
 #' @param return_gene_sets Logical scalar. If `TRUE`, return a list containing
 #'   the VMPA result, the gene sets used for the analysis, and selection
 #'   metadata. Default: `FALSE`.
+#' @param seed `NULL` or a single integer. Random seed applied locally to the
+#'   complete FGSEA backend call. Set to `NULL` to use the current global random
+#'   state without package-controlled seeding. Not used by GSVA. Default:
+#'   `123L`.
 #' @param verbose Logical scalar. If `TRUE`, print progress messages. Default:
 #'   `TRUE`.
 #'
@@ -141,10 +175,22 @@ vmpa <- function(input,
                     targets = NULL,
                     driver_filter = FALSE,
                     return_gene_sets = FALSE,
-                    verbose = TRUE) {
+                    verbose = TRUE,
+                    seed = 123L,
+                    gsva_min_size = 1L,
+                    fgsea_min_size = 10L) {
   algorithm <- match.arg(algorithm)
   gsva_score_scaling <- match.arg(gsva_score_scaling)
   context <- .vmpa_validate_context(context)
+  seed <- .vmpa_validate_seed(seed)
+  gsva_min_size <- .vmpa_validate_min_size(gsva_min_size, "gsva_min_size")
+  fgsea_min_size <- .vmpa_validate_min_size(fgsea_min_size, "fgsea_min_size")
+
+  input <- if (algorithm == "gsva") {
+    .vmpa_prepare_gsva_input(input)
+  } else {
+    .vmpa_prepare_fgsea_input(input)
+  }
 
   if (!is.logical(unique) || length(unique) != 1L || is.na(unique)) {
     stop("`unique` must be TRUE or FALSE.", call. = FALSE)
@@ -219,14 +265,37 @@ vmpa <- function(input,
   # Metadata for the gene sets that are actually used for scoring
   signature_metadata <- attr(gene_set_list, "signature_metadata")
 
+  backend_min_size <- if (algorithm == "gsva") gsva_min_size else fgsea_min_size
+  input_genes <- if (algorithm == "gsva") rownames(input) else names(input)
+  gene_set_list <- .vmpa_filter_gene_sets_by_overlap(
+    gene_set_list = gene_set_list,
+    input_genes = input_genes,
+    min_size = backend_min_size,
+    backend = algorithm,
+    verbose = verbose
+  )
+  signature_metadata <- attr(gene_set_list, "signature_metadata")
+
   # 4) Run analysis with the selected algorithm
   if (algorithm == "gsva") {
     vmpa_result <- .vmpa_run_gsva(
       expr_mat = input,
       gene_set_list = gene_set_list,
+      min_size = gsva_min_size,
       score_scaling = gsva_score_scaling,
       verbose = verbose
     )
+
+    .vmpa_msg(
+      verbose,
+      nrow(vmpa_result), " VMPA gene sets were used by the GSVA backend."
+    )
+
+    gene_set_list <- .vmpa_subset_gene_sets_to_backend(
+      gene_set_list,
+      rownames(vmpa_result)
+    )
+    signature_metadata <- attr(gene_set_list, "signature_metadata")
 
     if (isTRUE(unique)) {
       vmpa_result <- .vmpa_reduce_unique_gsva_scores(
@@ -250,10 +319,22 @@ vmpa <- function(input,
       context = context,
       gs_size = n,
       conf = min_conf,
-      min_size = 10L,
+      min_size = fgsea_min_size,
       max_size = 500L,
-      n_perm_simple = 5000L
+      n_perm_simple = 5000L,
+      seed = seed
     )
+
+    .vmpa_msg(
+      verbose,
+      nrow(vmpa_result), " VMPA gene sets were tested by the FGSEA backend."
+    )
+
+    gene_set_list <- .vmpa_subset_gene_sets_to_backend(
+      gene_set_list,
+      vmpa_result$pathway
+    )
+    signature_metadata <- attr(gene_set_list, "signature_metadata")
 
     if (!is.null(signature_metadata) &&
         is.data.frame(signature_metadata) &&
