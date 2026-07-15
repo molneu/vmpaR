@@ -1,10 +1,10 @@
-# Internal subset-resolution utilities for protivity
+# Internal subset-resolution utilities for vmpaR
 # These functions are not user-facing and should not be exported.
 
-.compass_resolve_subset_file <- function(context,
+.vmpa_resolve_subset_file <- function(context,
                                          cache_dir = NULL,
                                          verbose = TRUE) {
-  context <- .compass_validate_context(context)
+  context <- .vmpa_validate_context(context)
   
   if (!is.null(cache_dir) &&
       (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir) || cache_dir == "")) {
@@ -15,21 +15,21 @@
     stop("`verbose` must be TRUE or FALSE.", call. = FALSE)
   }
   
-  subset_file <- .compass_subset_filename(context)
+  subset_file <- .vmpa_subset_filename(context)
   
   # 1) package cache ----------------------------------------------------------
-  cache_dir <- .compass_cache_dir(cache_dir = cache_dir)
+  cache_dir <- .vmpa_cache_dir(cache_dir = cache_dir)
   cache_path <- file.path(cache_dir, subset_file)
   
-  .compass_msg(verbose, "Checking cache: ", cache_path)
+  .vmpa_msg(verbose, "Checking cache: ", cache_path)
   
   if (file.exists(cache_path)) {
-    .compass_msg(verbose, "Found cached subset file.")
+    .vmpa_msg(verbose, "Found cached subset file.")
     return(normalizePath(cache_path, winslash = "/", mustWork = TRUE))
   }
   
   # 2) download if not cached -------------------------------------------------
-  subset_url <- .compass_subset_url(context)
+  subset_url <- .vmpa_subset_url(context)
   
   if (is.na(subset_url) || subset_url == "") {
     stop(
@@ -38,8 +38,8 @@
     )
   }
   
-  .compass_msg(verbose, "Subset not found in cache.")
-  .compass_msg(verbose, "Downloading subset for context `", context, "` ...")
+  .vmpa_msg(verbose, "Subset not found in cache.")
+  .vmpa_msg(verbose, "Downloading subset for context `", context, "` ...")
   
   tmp <- tempfile(pattern = paste0(context, "_subset_"), fileext = ".rds")
   on.exit(unlink(tmp), add = TRUE)
@@ -93,16 +93,16 @@
     )
   }
   
-  .compass_msg(verbose, "Cached subset file at: ", cache_path)
+  .vmpa_msg(verbose, "Cached subset file at: ", cache_path)
   
   normalizePath(cache_path, winslash = "/", mustWork = TRUE)
 }
 
-.compass_cache_dir <- function(cache_dir = NULL) {
+.vmpa_cache_dir <- function(cache_dir = NULL) {
   out <- cache_dir
   
   if (is.null(out)) {
-    out <- file.path(tools::R_user_dir("protivity", which = "cache"), "subsets")
+    out <- file.path(tools::R_user_dir("vmpaR", which = "cache"), "subsets")
   }
   
   if (!dir.exists(out)) {
@@ -116,7 +116,7 @@
   normalizePath(out, winslash = "/", mustWork = TRUE)
 }
 
-.compass_context_registry <- function() {
+.vmpa_context_registry <- function() {
   data.frame(
     context = c(
       "breast",
@@ -158,18 +158,18 @@
   )
 }
 
-.compass_subset_filename <- function(context) {
-  registry <- .compass_context_registry()
+.vmpa_subset_filename <- function(context) {
+  registry <- .vmpa_context_registry()
   registry$subset_file[match(context, registry$context)]
 }
 
-.compass_subset_url <- function(context) {
-  registry <- .compass_context_registry()
+.vmpa_subset_url <- function(context) {
+  registry <- .vmpa_context_registry()
   registry$subset_url[match(context, registry$context)]
 }
 
-.compass_validate_context <- function(context) {
-  valid_contexts <- .compass_context_registry()$context
+.vmpa_validate_context <- function(context) {
+  valid_contexts <- .vmpa_context_registry()$context
   
   if (!is.character(context) || length(context) != 1L || is.na(context) || context == "") {
     stop("`context` must be a single non-empty character string.", call. = FALSE)
@@ -186,8 +186,8 @@
   context
 }
 
-.compass_msg <- function(verbose, ...) {
+.vmpa_msg <- function(verbose, ...) {
   if (isTRUE(verbose)) {
-    message("[protivity] ", ...)
+    message("[vmpaR] ", ...)
   }
 }

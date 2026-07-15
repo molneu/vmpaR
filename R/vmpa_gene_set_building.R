@@ -1,7 +1,7 @@
-# Internal gene-set building utilities for protivity
+# Internal gene-set building utilities for vmpaR
 # These functions are not user-facing and should not be exported.
 
-.compass_read_subset_gct <- function(subset_file) {
+.vmpa_read_subset_gct <- function(subset_file) {
   if (!is.character(subset_file) || length(subset_file) != 1L || is.na(subset_file) || subset_file == "") {
     stop("`subset_file` must be a single non-empty character string.", call. = FALSE)
   }
@@ -64,7 +64,7 @@
   gct
 }
 
-.compass_build_gene_sets <- function(gct,
+.vmpa_build_gene_sets <- function(gct,
                                      n = 250L,
                                      min_conf = 1L,
                                      targets = NULL,

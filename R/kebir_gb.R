@@ -20,7 +20,7 @@
 #'
 #' @examples
 #' if (requireNamespace("Biobase", quietly = TRUE)) {
-#'   data(kebir_gb, package = "protivity")
+#'   data(kebir_gb, package = "vmpaR")
 #'
 #'   expr_mat <- Biobase::exprs(kebir_gb)
 #'   sample_info <- Biobase::pData(kebir_gb)

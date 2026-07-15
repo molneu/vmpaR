@@ -1,13 +1,13 @@
-# Internal result-formatting utilities for protivity.
+# Internal result-formatting utilities for vmpaR.
 # These functions are not user-facing unless explicitly exported.
 
-.compass_format_conf <- function(x) {
+.vmpa_format_conf <- function(x) {
   x <- suppressWarnings(as.integer(x))
   out <- ifelse(is.na(x), NA_character_, paste0("c", x))
   out
 }
 
-.compass_collapse_conf <- function(x) {
+.vmpa_collapse_conf <- function(x) {
   x <- suppressWarnings(as.integer(x))
   x <- x[!is.na(x)]
 
@@ -18,7 +18,7 @@
   paste0("c", sort(unique(x)), collapse = ";")
 }
 
-.compass_get_metadata_col <- function(x, col) {
+.vmpa_get_metadata_col <- function(x, col) {
   if (col %in% colnames(x)) {
     return(x[[col]])
   }
@@ -26,7 +26,7 @@
   rep(NA, nrow(x))
 }
 
-.compass_new_result <- function(x,
+.vmpa_new_result <- function(x,
                                 context = NULL,
                                 algorithm = NULL,
                                 unique = NULL,
@@ -42,12 +42,12 @@
   attr(x, "signature_metadata") <- signature_metadata
   attr(x, "raw_result") <- raw_result
 
-  class(x) <- c("protivity_result", setdiff(class(x), "protivity_result"))
+  class(x) <- c("vmpa_result", setdiff(class(x), "vmpa_result"))
 
   x
 }
 
-.compass_format_gsva_result <- function(score_mat,
+.vmpa_format_gsva_result <- function(score_mat,
                                         signature_metadata,
                                         context,
                                         algorithm,
@@ -91,7 +91,7 @@
     out <- cbind(meta_df, score_df)
     rownames(out) <- NULL
 
-    return(.compass_new_result(
+    return(.vmpa_new_result(
       out,
       context = context,
       algorithm = algorithm,
@@ -129,7 +129,7 @@
 
       data.frame(
         target = target,
-        conf = .compass_collapse_conf(x$cps_conf_total),
+        conf = .vmpa_collapse_conf(x$cps_conf_total),
         stringsAsFactors = FALSE,
         check.names = FALSE
       )
@@ -151,11 +151,11 @@
       drop = FALSE
     ]
 
-    signature_id <- .compass_get_metadata_col(signature_metadata, "id")
+    signature_id <- .vmpa_get_metadata_col(signature_metadata, "id")
 
     meta_df <- data.frame(
       target = signature_metadata$cmap_name,
-      conf = .compass_format_conf(signature_metadata$cps_conf_total),
+      conf = .vmpa_format_conf(signature_metadata$cps_conf_total),
       signature = signature_id,
       stringsAsFactors = FALSE,
       check.names = FALSE
@@ -165,7 +165,7 @@
   out <- cbind(meta_df, score_df)
   rownames(out) <- NULL
 
-  .compass_new_result(
+  .vmpa_new_result(
     out,
     context = context,
     algorithm = algorithm,
@@ -175,55 +175,55 @@
   )
 }
 
-.compass_format_fgsea_result <- function(compass_result,
+.vmpa_format_fgsea_result <- function(vmpa_result,
                                          context,
                                          algorithm,
                                          unique) {
-  if (!is.data.frame(compass_result)) {
-    stop("`compass_result` must be a data.frame.", call. = FALSE)
+  if (!is.data.frame(vmpa_result)) {
+    stop("`vmpa_result` must be a data.frame.", call. = FALSE)
   }
 
-  if (nrow(compass_result) == 0L) {
-    return(.compass_new_result(
-      compass_result,
+  if (nrow(vmpa_result) == 0L) {
+    return(.vmpa_new_result(
+      vmpa_result,
       context = context,
       algorithm = algorithm,
       unique = unique,
-      raw_result = compass_result
+      raw_result = vmpa_result
     ))
   }
 
-  target <- if ("target" %in% colnames(compass_result)) {
-    compass_result$target
+  target <- if ("target" %in% colnames(vmpa_result)) {
+    vmpa_result$target
   } else {
-    rep(NA_character_, nrow(compass_result))
+    rep(NA_character_, nrow(vmpa_result))
   }
 
-  conf_source <- if ("cps_conf_total" %in% colnames(compass_result)) {
-    compass_result$cps_conf_total
-  } else if ("conf_total" %in% colnames(compass_result)) {
-    compass_result$conf_total
+  conf_source <- if ("cps_conf_total" %in% colnames(vmpa_result)) {
+    vmpa_result$cps_conf_total
+  } else if ("conf_total" %in% colnames(vmpa_result)) {
+    vmpa_result$conf_total
   } else {
-    rep(NA_integer_, nrow(compass_result))
+    rep(NA_integer_, nrow(vmpa_result))
   }
 
-  pathway <- if ("pathway" %in% colnames(compass_result)) {
-    compass_result$pathway
+  pathway <- if ("pathway" %in% colnames(vmpa_result)) {
+    vmpa_result$pathway
   } else {
-    rep(NA_character_, nrow(compass_result))
+    rep(NA_character_, nrow(vmpa_result))
   }
 
-  signature <- if ("signature_id" %in% colnames(compass_result)) {
-    compass_result$signature_id
-  } else if ("ref_id" %in% colnames(compass_result)) {
-    compass_result$ref_id
+  signature <- if ("signature_id" %in% colnames(vmpa_result)) {
+    vmpa_result$signature_id
+  } else if ("ref_id" %in% colnames(vmpa_result)) {
+    vmpa_result$ref_id
   } else {
     pathway
   }
 
   meta_df <- data.frame(
     target = target,
-    conf = .compass_format_conf(conf_source),
+    conf = .vmpa_format_conf(conf_source),
     pathway = pathway,
     signature = signature,
     stringsAsFactors = FALSE,
@@ -239,31 +239,31 @@
     "log2err"
   )
 
-  stat_cols <- stat_cols[stat_cols %in% colnames(compass_result)]
+  stat_cols <- stat_cols[stat_cols %in% colnames(vmpa_result)]
 
   out <- cbind(
     meta_df,
-    compass_result[, stat_cols, drop = FALSE]
+    vmpa_result[, stat_cols, drop = FALSE]
   )
 
   rownames(out) <- NULL
 
-  .compass_new_result(
+  .vmpa_new_result(
     out,
     context = context,
     algorithm = algorithm,
     unique = unique,
-    raw_result = compass_result
+    raw_result = vmpa_result
   )
 }
 
 #' @export
-print.protivity_result <- function(x, ...) {
+print.vmpa_result <- function(x, ...) {
   context <- attr(x, "context")
   algorithm <- attr(x, "algorithm")
   unique <- attr(x, "unique")
 
-  cat("protivity result\n")
+  cat("VMPA result\n")
 
   if (!is.null(context)) {
     cat("Context: ", context, "\n", sep = "")

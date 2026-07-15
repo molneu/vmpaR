@@ -1,7 +1,7 @@
-# Internal utilities for reducing multiple COMPASS signatures per target.
+# Internal utilities for reducing multiple VMPA signatures per target.
 # These functions are not user-facing and should not be exported.
 
-.compass_select_unique_candidates <- function(gene_set_list) {
+.vmpa_select_unique_candidates <- function(gene_set_list) {
 
   if (!is.list(gene_set_list)) {
     stop("`gene_set_list` must be a list.", call. = FALSE)
@@ -100,10 +100,10 @@
     drop = FALSE
   ]
 
-  validation_col <- .compass_find_validation_column(signature_metadata)
+  validation_col <- .vmpa_find_validation_column(signature_metadata)
 
   if (!is.null(validation_col)) {
-    signature_metadata$.validated <- .compass_as_validation_flag(
+    signature_metadata$.validated <- .vmpa_as_validation_flag(
       signature_metadata[[validation_col]]
     )
   } else {
@@ -153,7 +153,7 @@
   selected_gene_sets
 }
 
-.compass_reduce_unique_gsva_scores <- function(score_mat,
+.vmpa_reduce_unique_gsva_scores <- function(score_mat,
                                                signature_metadata) {
   if (!(is.matrix(score_mat) || is.data.frame(score_mat))) {
     stop("`score_mat` must be a matrix or data.frame.", call. = FALSE)
@@ -282,7 +282,7 @@
   reduced_mat
 }
 
-.compass_find_validation_column <- function(signature_metadata) {
+.vmpa_find_validation_column <- function(signature_metadata) {
   candidate_cols <- c(
     "validated",
     "validation",
@@ -300,7 +300,7 @@
   found_cols[[1L]]
 }
 
-.compass_as_validation_flag <- function(x) {
+.vmpa_as_validation_flag <- function(x) {
   if (is.logical(x)) {
     return(!is.na(x) & x)
   }

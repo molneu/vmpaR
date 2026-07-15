@@ -1,8 +1,8 @@
-# protivity
+# vmpaR
 
-**protivity** is an R package for running **COMPASS**: context-matched protein activity inference from transcriptomic data.
+**vmpaR** is an R package for running **VMPA**: context-matched protein activity inference from transcriptomic data.
 
-COMPASS applies cancer-context-specific perturbation signatures to user-provided transcriptomic data. The main function, `compass()`, supports two workflows:
+VMPA applies cancer-context-specific perturbation signatures to user-provided transcriptomic data. The main function, `vmpa()`, supports two workflows:
 
 - **GSVA-based scoring** for gene-by-sample expression matrices
 - **FGSEA-based enrichment** for ranked gene-level statistic vectors
@@ -11,11 +11,11 @@ COMPASS applies cancer-context-specific perturbation signatures to user-provided
 
 ```r
 # install.packages("remotes")
-remotes::install_github("landgrebe-a/protivity")
+remotes::install_github("landgrebe-a/vmpaR")
 ```
 
 ```r
-library(protivity)
+library(vmpaR)
 ```
 
 ## Optional dependencies
@@ -34,12 +34,12 @@ BiocManager::install(c("Biobase", "GSVA", "fgsea", "GSEABase"))
 The package includes `kebir_gb`, a small glioblastoma example dataset stored as a `Biobase::ExpressionSet`.
 
 ```r
-data(kebir_gb, package = "protivity")
+data(kebir_gb, package = "vmpaR")
 
 expr_mat <- Biobase::exprs(kebir_gb)
 sample_metadata <- Biobase::pData(kebir_gb)
 
-gsva_result <- compass(
+gsva_result <- vmpa(
   input = expr_mat,
   context = "glioma",
   algorithm = "gsva",
@@ -50,7 +50,7 @@ gsva_result <- compass(
 head(gsva_result)
 ```
 
-For the GSVA workflow, `compass()` returns a `protivity_result` data frame. Rows correspond to targets/proteins when `unique = TRUE` and to individual COMPASS signatures when `unique = FALSE`. Score columns correspond to samples.
+For the GSVA workflow, `vmpa()` returns a `vmpa_result` data frame. Rows correspond to targets/proteins when `unique = TRUE` and to individual VMPA signatures when `unique = FALSE`. Score columns correspond to samples.
 
 Optional GSVA score scaling modes include `"sample_z"`, `"sample_pop_sd"`, and `"signature_z"`.
 
@@ -68,7 +68,7 @@ stats_vec <- rowMeans(expr_mat[, relapsed, drop = FALSE]) -
 stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
 stats_vec <- sort(stats_vec, decreasing = TRUE)
 
-fgsea_result <- compass(
+fgsea_result <- vmpa(
   input = stats_vec,
   context = "glioma",
   algorithm = "fgsea",
@@ -79,11 +79,11 @@ fgsea_result <- compass(
 head(fgsea_result)
 ```
 
-For the FGSEA workflow, `compass()` returns a `protivity_result` data frame containing COMPASS metadata together with FGSEA enrichment statistics such as `target`, `conf`, `pathway`, `signature`, `NES`, `pval`, `padj`, `ES`, and `size`.
+For the FGSEA workflow, `vmpa()` returns a `vmpa_result` data frame containing VMPA metadata together with FGSEA enrichment statistics such as `target`, `conf`, `pathway`, `signature`, `NES`, `pval`, `padj`, `ES`, and `size`.
 
 ## Unique target-level output
 
-COMPASS reference data may contain multiple perturbation signatures for the same target/protein. With `unique = TRUE`, protivity groups signatures by their target/protein annotation.
+VMPA reference data may contain multiple perturbation signatures for the same target/protein. With `unique = TRUE`, vmpaR groups signatures by their target/protein annotation.
 
 If validation metadata are available, validated signatures are prioritized. Among the remaining candidates, signatures with the highest `cps_conf_total` are retained.
 
@@ -93,12 +93,12 @@ For FGSEA, retained signatures are tested separately. If multiple equally priori
 
 ## Returning gene sets and metadata
 
-By default, `compass()` returns the main COMPASS result object.
+By default, `vmpa()` returns the main VMPA result object.
 
 If you want to inspect the gene sets and signature metadata used for a run, set `return_gene_sets = TRUE`:
 
 ```r
-gsva_full <- compass(
+gsva_full <- vmpa(
   input = expr_mat,
   context = "glioma",
   algorithm = "gsva",
@@ -110,14 +110,17 @@ gsva_full <- compass(
 names(gsva_full)
 ```
 
-This returns a list containing the COMPASS result, the gene sets used for scoring, signature metadata, and unique-selection metadata when applicable.
+This returns a list containing the VMPA result, the gene sets used for scoring, signature metadata, and unique-selection metadata when applicable.
 
 ## Reference gene sets
 
-To inspect or export the underlying COMPASS reference gene sets directly, use `compass_gsc()`:
+To inspect or export the underlying VMPA reference gene sets directly, use `vmpa_gsc()`:
+
+The context-specific VMPA reference subsets are published on Figshare:
+<https://doi.org/10.6084/m9.figshare.32060643>.
 
 ```r
-gene_sets <- compass_gsc(
+gene_sets <- vmpa_gsc(
   context = "glioma",
   output = "list",
   verbose = FALSE
@@ -127,17 +130,17 @@ length(gene_sets)
 names(gene_sets)[1:5]
 ```
 
-`compass_gsc()` can return gene sets as a named list, a data frame, or a `GSEABase::GeneSetCollection`.
+`vmpa_gsc()` can return gene sets as a named list, a data frame, or a `GSEABase::GeneSetCollection`.
 
 ```r
-gene_sets_df <- compass_gsc(
+gene_sets_df <- vmpa_gsc(
   context = "glioma",
   output = "df",
   verbose = FALSE
 )
 
 if (requireNamespace("GSEABase", quietly = TRUE)) {
-  gene_sets_gsc <- compass_gsc(
+  gene_sets_gsc <- vmpa_gsc(
     context = "glioma",
     output = "gsc",
     verbose = FALSE
@@ -147,8 +150,8 @@ if (requireNamespace("GSEABase", quietly = TRUE)) {
 
 ## Main functions
 
-- `compass()` runs COMPASS on a user-provided expression matrix or ranked gene-level vector.
-- `compass_gsc()` retrieves COMPASS reference gene sets for a selected cancer context.
+- `vmpa()` runs VMPA on a user-provided expression matrix or ranked gene-level vector.
+- `vmpa_gsc()` retrieves VMPA reference gene sets for a selected cancer context.
 
 ## Available contexts
 
@@ -171,7 +174,7 @@ c(
 
 ## Citation
 
-If you use **protivity** or COMPASS-derived scores in scientific work, please cite the COMPASS paper.
+If you use **vmpaR** or VMPA-derived scores in scientific work, please cite the VMPA paper.
 
 ## Status
 

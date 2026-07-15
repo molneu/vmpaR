@@ -1,21 +1,21 @@
-#' Run COMPASS
+#' Run VMPA
 #'
-#' `compass()` applies context-matched COMPASS reference signatures to a user
+#' `vmpa()` applies context-matched VMPA reference signatures to a user
 #' query using either a GSVA-based or FGSEA-based workflow.
 #'
 #' With `algorithm = "gsva"`, the input is a gene-by-sample expression matrix.
-#' COMPASS returns a `protivity_result` data frame containing COMPASS metadata
+#' VMPA returns a `vmpa_result` data frame containing VMPA metadata
 #' and one score column per sample.
 #'
 #' With `algorithm = "fgsea"`, the input is a named numeric vector of gene-level
-#' statistics or rankings. COMPASS returns a `protivity_result` data frame
-#' containing FGSEA enrichment statistics together with COMPASS metadata.
+#' statistics or rankings. VMPA returns a `vmpa_result` data frame
+#' containing FGSEA enrichment statistics together with VMPA metadata.
 #'
 #' @details
-#' The selected cancer context determines which COMPASS reference signatures are
-#' used. Required reference data are resolved automatically by protivity.
+#' The selected cancer context determines which VMPA reference signatures are
+#' used. Required reference data are resolved automatically by vmpaR.
 #'
-#' COMPASS reference data may contain multiple perturbation signatures for the
+#' VMPA reference data may contain multiple perturbation signatures for the
 #' same target/protein.
 #'
 #' With `unique = FALSE`, all signatures passing the selected filters are kept
@@ -48,16 +48,16 @@
 #' @param algorithm Character scalar. Analysis workflow. Either `"gsva"` or
 #'   `"fgsea"`. Default: `"gsva"`.
 #' @param gsva_score_scaling Character scalar. Optional post-processing applied
-#'   to GSVA-derived COMPASS scores. One of `"none"`, `"sample_z"`,
+#'   to GSVA-derived VMPA scores. One of `"none"`, `"sample_z"`,
 #'   `"sample_pop_sd"`, or `"signature_z"`. Only used when
 #'   `algorithm = "gsva"`. Default: `"none"`.
 #' @param unique Logical scalar. If `TRUE`, reduce results to one
-#'   target/protein-level output per target. If `FALSE`, keep all COMPASS
+#'   target/protein-level output per target. If `FALSE`, keep all VMPA
 #'   signatures separately. Default: `TRUE`.
 #' @param n Integer scalar. Number of bottom-ranked unique genes to include per
-#'   COMPASS signature. Default: `250L`.
+#'   VMPA signature. Default: `250L`.
 #' @param min_conf Integer scalar. Minimum confidence score required for a
-#'   COMPASS signature to be included. Must be one of `1`, `2`, or `3`.
+#'   VMPA signature to be included. Must be one of `1`, `2`, or `3`.
 #'   Default: `1L`.
 #' @param targets Optional character vector. If provided, only signatures for
 #'   matching targets are retained. Default: `NULL`.
@@ -65,24 +65,24 @@
 #'   a non-`"None"` cancer-driver annotation. This is a broad annotation filter,
 #'   not a strict canonical-driver filter. Default: `FALSE`.
 #' @param return_gene_sets Logical scalar. If `TRUE`, return a list containing
-#'   the COMPASS result, the gene sets used for the analysis, and selection
+#'   the VMPA result, the gene sets used for the analysis, and selection
 #'   metadata. Default: `FALSE`.
 #' @param verbose Logical scalar. If `TRUE`, print progress messages. Default:
 #'   `TRUE`.
 #'
 #' @return
-#' If `return_gene_sets = FALSE`, a `protivity_result` data frame.
+#' If `return_gene_sets = FALSE`, a `vmpa_result` data frame.
 #'
 #' For `algorithm = "gsva"`, rows correspond to targets/proteins when
-#' `unique = TRUE` and to individual COMPASS signatures when `unique = FALSE`.
+#' `unique = TRUE` and to individual VMPA signatures when `unique = FALSE`.
 #' Score columns correspond to samples.
 #'
-#' For `algorithm = "fgsea"`, rows correspond to tested COMPASS signatures and
-#' columns contain FGSEA enrichment statistics together with COMPASS metadata.
+#' For `algorithm = "fgsea"`, rows correspond to tested VMPA signatures and
+#' columns contain FGSEA enrichment statistics together with VMPA metadata.
 #'
 #' If `return_gene_sets = TRUE`, a list with:
 #'
-#' - `compass_result`: the `protivity_result` data frame.
+#' - `vmpa_result`: the `vmpa_result` data frame.
 #' - `gene_sets`: gene sets used for the analysis.
 #' - `signature_metadata`: metadata for the gene sets used.
 #' - `context`: selected cancer context.
@@ -94,12 +94,12 @@
 #' @examples
 #' \dontrun{
 #' if (requireNamespace("Biobase", quietly = TRUE)) {
-#'   data(kebir_gb, package = "protivity")
+#'   data(kebir_gb, package = "vmpaR")
 #'
 #'   # GSVA workflow
 #'   expr_mat <- Biobase::exprs(kebir_gb)
 #'
-#'   gsva_result <- compass(
+#'   gsva_result <- vmpa(
 #'     input = expr_mat,
 #'     context = "glioma",
 #'     algorithm = "gsva"
@@ -117,7 +117,7 @@
 #'   stats_vec <- stats_vec[is.finite(stats_vec) & !is.na(stats_vec)]
 #'   stats_vec <- sort(stats_vec, decreasing = TRUE)
 #'
-#'   fgsea_result <- compass(
+#'   fgsea_result <- vmpa(
 #'     input = stats_vec,
 #'     context = "glioma",
 #'     algorithm = "fgsea"
@@ -126,7 +126,7 @@
 #' }
 #'
 #' @export
-compass <- function(input,
+vmpa <- function(input,
                     context,
                     algorithm = c("gsva", "fgsea"),
                     gsva_score_scaling = c(
@@ -144,7 +144,7 @@ compass <- function(input,
                     verbose = TRUE) {
   algorithm <- match.arg(algorithm)
   gsva_score_scaling <- match.arg(gsva_score_scaling)
-  context <- .compass_validate_context(context)
+  context <- .vmpa_validate_context(context)
 
   if (!is.logical(unique) || length(unique) != 1L || is.na(unique)) {
     stop("`unique` must be TRUE or FALSE.", call. = FALSE)
@@ -185,15 +185,15 @@ compass <- function(input,
   }
 
   # 1) Resolve subset file from cache or download it automatically
-  subset_file <- .compass_resolve_subset_file(
+  subset_file <- .vmpa_resolve_subset_file(
     context = context,
     verbose = verbose
   )
 
-  # 2) Read subset GCT and build COMPASS gene sets internally
-  gct <- .compass_read_subset_gct(subset_file)
+  # 2) Read subset GCT and build VMPA gene sets internally
+  gct <- .vmpa_read_subset_gct(subset_file)
 
-  gene_set_list <- .compass_build_gene_sets(
+  gene_set_list <- .vmpa_build_gene_sets(
     gct = gct,
     n = n,
     min_conf = min_conf,
@@ -202,18 +202,18 @@ compass <- function(input,
   )
 
   if (length(gene_set_list) == 0L) {
-    stop("No COMPASS gene sets available after filtering.", call. = FALSE)
+    stop("No VMPA gene sets available after filtering.", call. = FALSE)
   }
 
   # 3) Optionally prioritize signatures per target/protein
   if (isTRUE(unique)) {
-    gene_set_list <- .compass_select_unique_candidates(
+    gene_set_list <- .vmpa_select_unique_candidates(
       gene_set_list = gene_set_list
     )
   }
 
   if (length(gene_set_list) == 0L) {
-    stop("No COMPASS gene sets available after unique reduction.", call. = FALSE)
+    stop("No VMPA gene sets available after unique reduction.", call. = FALSE)
   }
 
   # Metadata for the gene sets that are actually used for scoring
@@ -221,7 +221,7 @@ compass <- function(input,
 
   # 4) Run analysis with the selected algorithm
   if (algorithm == "gsva") {
-    compass_result <- .compass_run_gsva(
+    vmpa_result <- .vmpa_run_gsva(
       expr_mat = input,
       gene_set_list = gene_set_list,
       score_scaling = gsva_score_scaling,
@@ -229,14 +229,14 @@ compass <- function(input,
     )
 
     if (isTRUE(unique)) {
-      compass_result <- .compass_reduce_unique_gsva_scores(
-        score_mat = compass_result,
+      vmpa_result <- .vmpa_reduce_unique_gsva_scores(
+        score_mat = vmpa_result,
         signature_metadata = signature_metadata
       )
     }
 
-    compass_result <- .compass_format_gsva_result(
-      score_mat = compass_result,
+    vmpa_result <- .vmpa_format_gsva_result(
+      score_mat = vmpa_result,
       signature_metadata = signature_metadata,
       context = context,
       algorithm = algorithm,
@@ -244,7 +244,7 @@ compass <- function(input,
     )
 
   } else if (algorithm == "fgsea") {
-    compass_result <- .compass_run_fgsea(
+    vmpa_result <- .vmpa_run_fgsea(
       stats_vec = input,
       gene_set_list = gene_set_list,
       context = context,
@@ -259,23 +259,23 @@ compass <- function(input,
         is.data.frame(signature_metadata) &&
         nrow(signature_metadata) > 0L &&
         "gene_set_name" %in% colnames(signature_metadata)) {
-      meta_idx <- match(compass_result$pathway, signature_metadata$gene_set_name)
+      meta_idx <- match(vmpa_result$pathway, signature_metadata$gene_set_name)
 
       if ("cmap_name" %in% colnames(signature_metadata)) {
-        compass_result$target <- signature_metadata$cmap_name[meta_idx]
+        vmpa_result$target <- signature_metadata$cmap_name[meta_idx]
       }
 
       if ("id" %in% colnames(signature_metadata)) {
-        compass_result$signature_id <- signature_metadata$id[meta_idx]
+        vmpa_result$signature_id <- signature_metadata$id[meta_idx]
       }
 
       if ("cps_conf_total" %in% colnames(signature_metadata)) {
-        compass_result$cps_conf_total <- signature_metadata$cps_conf_total[meta_idx]
+        vmpa_result$cps_conf_total <- signature_metadata$cps_conf_total[meta_idx]
       }
     }
 
-    compass_result <- .compass_format_fgsea_result(
-      compass_result = compass_result,
+    vmpa_result <- .vmpa_format_fgsea_result(
+      vmpa_result = vmpa_result,
       context = context,
       algorithm = algorithm,
       unique = unique
@@ -285,7 +285,7 @@ compass <- function(input,
   # 5) Return result
   if (isTRUE(return_gene_sets)) {
     return(list(
-      compass_result = compass_result,
+      vmpa_result = vmpa_result,
       gene_sets = gene_set_list,
       signature_metadata = attr(gene_set_list, "signature_metadata"),
       context = context,
@@ -295,5 +295,5 @@ compass <- function(input,
     ))
   }
 
-  compass_result
+  vmpa_result
 }

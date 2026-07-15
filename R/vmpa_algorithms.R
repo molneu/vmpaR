@@ -1,7 +1,7 @@
-# Internal analysis-algorithm utilities for protivity
+# Internal analysis-algorithm utilities for vmpaR
 # These functions are not user-facing and should not be exported.
 
-.compass_run_gsva <- function(expr_mat,
+.vmpa_run_gsva <- function(expr_mat,
                               gene_set_list,
                               score_scaling = c(
                                 "none",
@@ -64,41 +64,41 @@
     maxDiff = TRUE
   )
 
-  compass_result <- GSVA::gsva(gsva_par)
+  vmpa_result <- GSVA::gsva(gsva_par)
 
-  compass_result <- as.matrix(compass_result)
-  attr(compass_result, "geneSets") <- NULL
+  vmpa_result <- as.matrix(vmpa_result)
+  attr(vmpa_result, "geneSets") <- NULL
 
   if (score_scaling == "none") {
-    .compass_msg(verbose, "No GSVA score scaling applied.")
+    .vmpa_msg(verbose, "No GSVA score scaling applied.")
 
   } else if (score_scaling == "sample_z") {
-    .compass_msg(verbose, "Applying sample-wise z-score scaling to GSVA scores.")
-    .compass_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample.")
-    compass_result <- base::scale(compass_result)
-    compass_result <- as.matrix(compass_result)
+    .vmpa_msg(verbose, "Applying sample-wise z-score scaling to GSVA scores.")
+    .vmpa_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample.")
+    vmpa_result <- base::scale(vmpa_result)
+    vmpa_result <- as.matrix(vmpa_result)
 
   } else if (score_scaling == "sample_pop_sd") {
-    .compass_msg(verbose, "Applying sample-wise population-SD scaling to GSVA scores.")
-    .compass_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample using population-SD scaling.")
-    N <- nrow(compass_result)
-    compass_result <- base::scale(
-      compass_result,
-      scale = apply(compass_result, 2, stats::sd) * sqrt((N - 1) / N)
+    .vmpa_msg(verbose, "Applying sample-wise population-SD scaling to GSVA scores.")
+    .vmpa_msg(verbose, "Interpretation: emphasizes relative activity patterns within each sample using population-SD scaling.")
+    N <- nrow(vmpa_result)
+    vmpa_result <- base::scale(
+      vmpa_result,
+      scale = apply(vmpa_result, 2, stats::sd) * sqrt((N - 1) / N)
     )
-    compass_result <- as.matrix(compass_result)
+    vmpa_result <- as.matrix(vmpa_result)
 
   } else if (score_scaling == "signature_z") {
-    .compass_msg(verbose, "Applying signature-wise z-score scaling to GSVA scores.")
-    .compass_msg(verbose, "Interpretation: emphasizes relative differences for each signature across samples.")
-    compass_result <- t(base::scale(t(compass_result)))
-    compass_result <- as.matrix(compass_result)
+    .vmpa_msg(verbose, "Applying signature-wise z-score scaling to GSVA scores.")
+    .vmpa_msg(verbose, "Interpretation: emphasizes relative differences for each signature across samples.")
+    vmpa_result <- t(base::scale(t(vmpa_result)))
+    vmpa_result <- as.matrix(vmpa_result)
   }
 
-  compass_result
+  vmpa_result
 }
 
-.compass_run_fgsea <- function(stats_vec,
+.vmpa_run_fgsea <- function(stats_vec,
                                gene_set_list,
                                context,
                                gs_size,
@@ -202,22 +202,22 @@
     nPermSimple = n_perm_simple
   )
 
-  compass_result <- as.data.frame(fgsea_result, stringsAsFactors = FALSE)
-  compass_result$context <- context
-  compass_result$gs_size <- as.integer(gs_size)
-  compass_result$conf <- as.integer(conf)
-  compass_result$ref_id <- sub("_c[0-9]+$", "", compass_result$pathway)
-  compass_result$conf_total <- suppressWarnings(
-    as.integer(sub(".*_c([0-9]+)$", "\\1", compass_result$pathway))
+  vmpa_result <- as.data.frame(fgsea_result, stringsAsFactors = FALSE)
+  vmpa_result$context <- context
+  vmpa_result$gs_size <- as.integer(gs_size)
+  vmpa_result$conf <- as.integer(conf)
+  vmpa_result$ref_id <- sub("_c[0-9]+$", "", vmpa_result$pathway)
+  vmpa_result$conf_total <- suppressWarnings(
+    as.integer(sub(".*_c([0-9]+)$", "\\1", vmpa_result$pathway))
   )
 
-  compass_result <- compass_result[
-    order(compass_result$padj, -abs(compass_result$NES)),
+  vmpa_result <- vmpa_result[
+    order(vmpa_result$padj, -abs(vmpa_result$NES)),
     ,
     drop = FALSE
   ]
 
-  rownames(compass_result) <- NULL
+  rownames(vmpa_result) <- NULL
 
-  compass_result
+  vmpa_result
 }

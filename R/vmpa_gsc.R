@@ -1,16 +1,16 @@
-#' Retrieve COMPASS gene sets
+#' Retrieve VMPA gene sets
 #'
-#' `compass_gsc()` returns COMPASS gene sets for a selected cancer context
+#' `vmpa_gsc()` returns VMPA gene sets for a selected cancer context
 #' without running GSVA or FGSEA.
 #'
 #' Use this function to inspect, export, or reuse the reference gene sets that
-#' are used by [compass()].
+#' are used by [vmpa()].
 #'
 #' @details
-#' The selected cancer context determines which COMPASS reference signatures are
-#' used. Required reference data are resolved automatically by protivity.
+#' The selected cancer context determines which VMPA reference signatures are
+#' used. Required reference data are resolved automatically by vmpaR.
 #'
-#' By default, `compass_gsc()` returns all signatures passing the selected
+#' By default, `vmpa_gsc()` returns all signatures passing the selected
 #' filters. If `unique = TRUE`, signatures are prioritized within each
 #' target/protein: validated signatures are preferred when available, and among
 #' the remaining candidates signatures with the highest `cps_conf_total` are
@@ -20,8 +20,8 @@
 #'   `"glioma"`, `"melanoma"`, `"nsclc"`, `"gastric"`, `"ovarian"`,
 #'   `"crc"`, `"breast"`, `"prostate"`, `"pdac"`, or `"headneck"`.
 #' @param n Integer scalar. Number of bottom-ranked unique genes to include per
-#'   COMPASS signature. Default: `250L`.
-#' @param min_conf Integer scalar. Minimum COMPASS confidence level required for
+#'   VMPA signature. Default: `250L`.
+#' @param min_conf Integer scalar. Minimum VMPA confidence level required for
 #'   a signature to be included. Must be one of `1`, `2`, or `3`.
 #'   Default: `1L`.
 #' @param targets Optional character vector. If provided, only signatures for
@@ -30,7 +30,7 @@
 #'   a non-`"None"` cancer-driver annotation. This is a broad annotation filter,
 #'   not a strict canonical-driver filter. Default: `FALSE`.
 #' @param unique Logical scalar. If `TRUE`, retain the highest-priority gene
-#'   sets per target/protein. If `FALSE`, keep all COMPASS signatures passing
+#'   sets per target/protein. If `FALSE`, keep all VMPA signatures passing
 #'   the selected filters. Default: `FALSE`.
 #' @param output Character scalar. Output format. One of `"list"`, `"df"`, or
 #'   `"gsc"`. Default: `"list"`.
@@ -51,12 +51,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Return all glioma COMPASS gene sets as a named list
-#' gene_sets <- compass_gsc("glioma")
+#' # Return all glioma VMPA gene sets as a named list
+#' gene_sets <- vmpa_gsc("glioma")
 #'
 #' # Return highest-priority gene sets per target/protein
 #' # Tied candidates are retained.
-#' gene_sets_unique <- compass_gsc("glioma", unique = TRUE)
+#' gene_sets_unique <- vmpa_gsc("glioma", unique = TRUE)
 #'
 #' # Inspect signature metadata
 #' sig_meta <- attr(gene_sets, "signature_metadata")
@@ -64,12 +64,12 @@
 #'
 #' # Return a GeneSetCollection
 #' if (requireNamespace("GSEABase", quietly = TRUE)) {
-#'   gsc <- compass_gsc("glioma", output = "gsc")
+#'   gsc <- vmpa_gsc("glioma", output = "gsc")
 #' }
 #' }
 #'
 #' @export
-compass_gsc <- function(context,
+vmpa_gsc <- function(context,
                         n = 250L,
                         min_conf = 1L,
                         targets = NULL,
@@ -78,7 +78,7 @@ compass_gsc <- function(context,
                         output = c("list", "df", "gsc"),
                         verbose = TRUE) {
   output <- match.arg(output)
-  context <- .compass_validate_context(context)
+  context <- .vmpa_validate_context(context)
 
   if (!is.logical(verbose) || length(verbose) != 1L || is.na(verbose)) {
     stop("`verbose` must be TRUE or FALSE.", call. = FALSE)
@@ -109,14 +109,14 @@ compass_gsc <- function(context,
     stop("`unique` must be TRUE or FALSE.", call. = FALSE)
   }
 
-  subset_file <- .compass_resolve_subset_file(
+  subset_file <- .vmpa_resolve_subset_file(
     context = context,
     verbose = verbose
   )
 
-  gct <- .compass_read_subset_gct(subset_file)
+  gct <- .vmpa_read_subset_gct(subset_file)
 
-  gene_set_list <- .compass_build_gene_sets(
+  gene_set_list <- .vmpa_build_gene_sets(
     gct = gct,
     n = n,
     min_conf = min_conf,
@@ -125,17 +125,17 @@ compass_gsc <- function(context,
   )
 
   if (length(gene_set_list) == 0L) {
-    stop("No COMPASS gene sets available after filtering.", call. = FALSE)
+    stop("No VMPA gene sets available after filtering.", call. = FALSE)
   }
 
   if (isTRUE(unique)) {
-    gene_set_list <- .compass_select_unique_candidates(
+    gene_set_list <- .vmpa_select_unique_candidates(
       gene_set_list = gene_set_list
     )
   }
 
   if (length(gene_set_list) == 0L) {
-    stop("No COMPASS gene sets available after unique reduction.", call. = FALSE)
+    stop("No VMPA gene sets available after unique reduction.", call. = FALSE)
   }
 
   signature_metadata <- attr(gene_set_list, "signature_metadata")
