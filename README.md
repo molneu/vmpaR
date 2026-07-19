@@ -14,6 +14,31 @@ The R package and desktop application use the same VMPA scoring engine. The
 desktop application additionally provides graphical input preprocessing,
 gene-identifier annotation, visualization, and downstream analysis workflows.
 
+## Installation
+
+`vmpaR` requires R 4.3 or later.
+
+```r
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+remotes::install_github("molneu/vmpaR")
+```
+
+Then load the package:
+
+```r
+library(vmpaR)
+```
+
+The first analysis for a context downloads its reference subset from Figshare.
+Subsequent calls reuse the copy under:
+
+```r
+file.path(tools::R_user_dir("vmpaR", "cache"), "subsets")
+```
+
 ## Citation
 
 If you use vmpaR, either as R package or as desktop application, please cite our manuscript:
@@ -43,31 +68,6 @@ same target. With `unique = TRUE`, the package prioritizes signatures using the
 available reference metadata and confidence score. Equally prioritized GSVA
 signatures are averaged at target level; equally prioritized FGSEA signatures
 remain separate rows.
-
-## Installation
-
-`vmpaR` requires R 4.3 or later.
-
-```r
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes")
-}
-
-remotes::install_github("molneu/vmpaR")
-```
-
-Then load the package:
-
-```r
-library(vmpaR)
-```
-
-The first analysis for a context downloads its reference subset from Figshare.
-Subsequent calls reuse the copy under:
-
-```r
-file.path(tools::R_user_dir("vmpaR", "cache"), "subsets")
-```
 
 ## Quick start
 
