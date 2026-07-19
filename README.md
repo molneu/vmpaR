@@ -8,7 +8,7 @@ context-specific, transcriptome-based inference of protein activity.
 VMPA is also available as a standalone desktop application for macOS Apple
 Silicon and Windows 64-bit.
 
-*Download link to be added*
+[Download VMPA desktop applications](https://figshare.com/s/8a7b20aef74f8c3ee757)
 
 The R package and desktop application use the same VMPA scoring engine. The
 desktop application additionally provides graphical input preprocessing,
