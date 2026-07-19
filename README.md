@@ -35,13 +35,6 @@ Scores should primarily be interpreted within a consistently processed dataset a
 `vmpaR` requires R 4.3 or later.
 
 ```r
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
-}
-
-# Install the core data dependency, analysis backends, and example dependencies.
-BiocManager::install(c("cmapR", "Biobase", "GSVA", "fgsea", "GSEABase"))
-
 if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
