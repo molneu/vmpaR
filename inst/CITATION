@@ -1,6 +1,7 @@
 bibentry(
   bibtype = "Misc",
   year = "2026",
+  title = "Modeling the active proteome by context-matched perturbation signatures",
   note = "Manuscript in preparation",
-  textVersion = "Cima I, et al. (2026). Manuscript in preparation."
+  textVersion = "Cima I, et al. (2026). Modeling the active proteome by context-matched perturbation signatures. Manuscript in preparation."
 )
