@@ -1,6 +1,6 @@
 # vmpaR
 
-`vmpaR` implements **VMPA (Virtual Mapping of Active Proteomes)**, a method for
+`vmpaR` implements **VMPA (Virtual Mapping of Proteome Activity)**, a method for
 context-specific, transcriptome-based inference of protein activity.
 
 ## Desktop application
@@ -53,7 +53,7 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-remotes::install_github("landgrebe-a/vmpaR")
+remotes::install_github("molneu/vmpaR")
 ```
 
 Then load the package:
