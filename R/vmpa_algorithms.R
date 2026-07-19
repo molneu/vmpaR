@@ -57,22 +57,6 @@
     maxDiff = TRUE
   )
 
-  backend_gene_sets <- GSVA::geneSets(gsva_par)
-  expected_sizes <- vapply(
-    gene_set_list,
-    function(gene_set) length(intersect(rownames(expr_mat), unique(gene_set))),
-    integer(1)
-  )
-  expected_sizes <- expected_sizes[expected_sizes >= min_size]
-
-  if (!setequal(names(backend_gene_sets), names(expected_sizes)) ||
-      any(lengths(backend_gene_sets)[names(expected_sizes)] != expected_sizes)) {
-    stop(
-      "Internal error: GSVA gene-set mapping differs from the VMPA overlap calculation.",
-      call. = FALSE
-    )
-  }
-
   vmpa_result <- GSVA::gsva(gsva_par, verbose = verbose)
 
   vmpa_result <- as.matrix(vmpa_result)

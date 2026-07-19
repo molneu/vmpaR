@@ -178,6 +178,29 @@ test_that("GSVA backend uses its mapped gene sets at minSize 1", {
   )
 })
 
+test_that("GSVA may discard constant genes without a mapping error", {
+  expr <- rbind(
+    CONSTANT = rep(5, 4),
+    VARIABLE_A = c(1, 2, 3, 4),
+    VARIABLE_B = c(4, 2, 3, 1)
+  )
+  colnames(expr) <- paste0("S", 1:4)
+  gene_sets <- list(
+    MIXED_c1 = c("CONSTANT", "VARIABLE_A", "VARIABLE_B")
+  )
+
+  result <- suppressWarnings(vmpaR:::.vmpa_run_gsva(
+    expr_mat = expr,
+    gene_set_list = gene_sets,
+    min_size = 1L,
+    score_scaling = "none",
+    verbose = FALSE
+  ))
+
+  expect_identical(rownames(result), "MIXED_c1")
+  expect_identical(colnames(result), colnames(expr))
+})
+
 test_that("FGSEA excludes sets below ten represented genes", {
   stats <- seq(2, -2, length.out = 20L)
   names(stats) <- paste0("GENE", 1:20)
